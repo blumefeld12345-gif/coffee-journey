@@ -30,10 +30,18 @@ export type Lesson = {
 
 export type Ratings = { acidity: number; bitterness: number; sweetness: number; body: number; liking: number }
 
+export type BrewKind = 'hand-drip' | 'drip-bag' | 'cafe'
+
 export type BrewLog = {
   id: string
+  kind?: BrewKind
   date: string
   bean: string
+  cafeName?: string
+  brand?: string
+  origin?: string
+  process?: string
+  roast?: string
   dose: number
   water: number
   temperature: number

@@ -56,6 +56,12 @@ export function suggestNext(ratings: Ratings) {
   return '次回は同じ条件でもう一度淹れ、味が再現できるか確かめましょう。'
 }
 
+export function kindOf(log: BrewLog) {
+  return log.kind ?? 'hand-drip'
+}
+
+export const kindLabels = { 'hand-drip': 'ハンドドリップ', 'drip-bag': 'ドリップバッグ', cafe: 'カフェの一杯' } as const
+
 export function createBrewLog(values: Omit<BrewLog, 'id' | 'suggestion'>): BrewLog {
   return { ...values, id: crypto.randomUUID(), suggestion: suggestNext(values.ratings) }
 }

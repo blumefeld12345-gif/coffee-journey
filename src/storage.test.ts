@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateStreak, suggestNext, validateBackup } from './storage'
+import { calculateStreak, kindOf, suggestNext, validateBackup } from './storage'
 
 describe('calculateStreak', () => {
   it('counts through today', () => expect(calculateStreak(['2026-10-09', '2026-10-10', '2026-10-11'], new Date(2026, 9, 11, 12))).toBe(3))
@@ -16,4 +16,10 @@ describe('suggestNext', () => {
 describe('validateBackup', () => {
   it('accepts v1 app data', () => expect(validateBackup({ version: 1, completedLessons: [], quizScores: {}, activityDates: [], brewLogs: [] }).version).toBe(1))
   it('rejects other data', () => expect(() => validateBackup({ hello: 'world' })).toThrow())
+})
+
+describe('record compatibility', () => {
+  it('treats records created before record types as hand drip', () => {
+    expect(kindOf({} as never)).toBe('hand-drip')
+  })
 })

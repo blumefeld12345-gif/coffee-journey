@@ -120,7 +120,29 @@ function LessonPage({ lesson, data, navigate, update }: { lesson: Lesson; data: 
 }
 
 function LessonBlock({ section }: { section: LessonSection }) {
-  return <section className={`lesson-block visual-${section.visual}`}><div className="lesson-text"><span className="eyebrow">{section.eyebrow}</span><h2>{section.title}</h2><p>{section.body}</p></div><div className="visual-board">{section.items.map((item, i) => <article key={item.label} className={item.tone ?? ''}><span>{String(i + 1).padStart(2, '0')}</span><strong>{item.label}</strong><p>{item.detail}</p></article>)}</div></section>
+  const atlas = section.visual === 'countries'
+  return <section className={`lesson-block visual-${section.visual}`}><div className="lesson-text"><span className="eyebrow">{section.eyebrow}</span><h2>{section.title}</h2><p>{section.body}</p></div><div className={`visual-board ${atlas ? 'atlas-board' : ''}`}>
+    {atlas && <div className="atlas-map" aria-hidden="true"><span className="land land-one" /><span className="land land-two" /><span className="land land-three" /><i className="route route-one" /><i className="route route-two" /><b>ORIGIN MAP</b></div>}
+    {section.items.map((item, i) => <article key={item.label} className={item.tone ?? ''}><div className="visual-symbol" aria-hidden="true">{visualSymbol(`${item.label} ${item.detail}`, i)}</div><span>{String(i + 1).padStart(2, '0')}</span><strong>{item.label}</strong><p>{item.detail}</p></article>)}</div></section>
+}
+
+function visualSymbol(text: string, index = 0) {
+  const symbols: [RegExp, string][] = [
+    [/花|華やか|ゲシャ|イルガチェフェ/, '✿'], [/柑橘|シトラス|明る/, '🍊'], [/ベリー|果実|ナチュラル/, '●'], [/チョコ|カカオ|深煎り/, '▰'],
+    [/標高|高地|山|斜面/, '△'], [/国|地域|産地|エチオピア|ケニア|コロンビア|ブラジル|グジ|シダマ|ウイラ|ニエリ|アンティグア/, '⌖'],
+    [/品種|ティピカ|ブルボン|SL28|アラビカ|カネフォラ/, '☘'], [/精製|ウォッシュド|ハニー|発酵/, '≈'], [/温度|湯温|熱/, '♨'],
+    [/時間|秒|分/, '◷'], [/挽|粒|微粉/, '•••'], [/湯|水|雨/, '◉'], [/豆|粉|焙煎/, '◒'], [/香り/, '〰'], [/甘/, '◇']
+  ]
+  return symbols.find(([pattern]) => pattern.test(text))?.[1] ?? ['✦', '◌', '◇', '☕'][index % 4]
+}
+
+function questionClues(question: string) {
+  if (/品種|アラビカ|ブルボン|SL28/.test(question)) return ['☘', '●', '◒']
+  if (/産地|地域|標高|テロワール/.test(question)) return ['⌖', '△', '☕']
+  if (/精製|ウォッシュド|ナチュラル|発酵/.test(question)) return ['●', '≈', '☀']
+  if (/味|香り|酸味|ベリー|花/.test(question)) return ['✿', '🍊', '◇']
+  if (/温度|湯温|抽出|挽き|時間/.test(question)) return ['♨', '•••', '◷']
+  return ['👀', '💡', '☕']
 }
 
 function QuizPage({ lesson, data, navigate, update }: { lesson: Lesson; data: AppData; navigate: (v: View) => void; update: (fn: (d: AppData) => AppData) => void }) {
@@ -129,7 +151,7 @@ function QuizPage({ lesson, data, navigate, update }: { lesson: Lesson; data: Ap
   useEffect(() => { if (finished) update((d) => ({ ...d, completedLessons: [...new Set([...d.completedLessons, lesson.id])], quizScores: { ...d.quizScores, [lesson.id]: Math.max(d.quizScores[lesson.id] ?? 0, score) }, activityDates: [...new Set([...d.activityDates, todayKey()])] })) }, [finished]) // eslint-disable-line react-hooks/exhaustive-deps
   if (finished) return <div className="page quiz-result"><div className="result-ring"><strong>{score}</strong><span>/ 3</span></div><span className="eyebrow">LESSON COMPLETE</span><h1>{score === 3 ? 'パーフェクト！' : '一歩ずつ、詳しくなっています。'}</h1><p>{score === 3 ? '知識がきれいにつながりました。次の一杯で確かめてみましょう。' : '解説を思い出しながら、もう一度挑戦しても大丈夫です。'}</p><div className="result-actions"><button className="primary" onClick={() => navigate({ page: 'course' })}>コースへ戻る</button><button className="secondary" onClick={() => { setCurrent(0); setAnswers([]); setSelected(null) }}><RotateCcw size={17} /> もう一度</button></div><p className="best-score">ベストスコア：{Math.max(data.quizScores[lesson.id] ?? 0, score)} / 3</p></div>
   const question = lesson.quiz[current]
-  return <div className="page quiz-page"><button className="back" onClick={() => navigate({ page: 'lesson', id: lesson.id })}><ChevronLeft /> レッスンへ</button><div className="quiz-progress"><span>QUESTION {current + 1} / 3</span><div>{lesson.quiz.map((_, i) => <i key={i} className={i <= current ? 'active' : ''} />)}</div></div><div className="quiz-card"><CircleHelp /><h1>{question.question}</h1><div className="choices">{question.choices.map((choice, i) => { const answered = selected !== null; const state = answered ? (i === question.answer ? 'correct' : i === selected ? 'wrong' : '') : ''; return <button disabled={answered} className={state} key={choice} onClick={() => { setSelected(i); setAnswers([...answers, i]) }}><span>{String.fromCharCode(65 + i)}</span>{choice}{state === 'correct' && <Check />}</button> })}</div>{selected !== null && <div className={`explanation ${selected === question.answer ? 'correct' : 'wrong'}`}><strong>{selected === question.answer ? '正解！' : 'おしい！'}</strong><p>{question.explanation}</p><button className="primary" onClick={() => { setCurrent(current + 1); setSelected(null) }}>{current === 2 ? '結果を見る' : '次の問題'} <ChevronRight /></button></div>}</div></div>
+  return <div className="page quiz-page"><button className="back" onClick={() => navigate({ page: 'lesson', id: lesson.id })}><ChevronLeft /> レッスンへ</button><div className="quiz-progress"><span>QUESTION {current + 1} / 3</span><div>{lesson.quiz.map((_, i) => <i key={i} className={i <= current ? 'active' : ''} />)}</div></div><div className="quiz-card"><div className="quiz-clues" aria-hidden="true">{questionClues(question.question).map((clue, i) => <span key={`${clue}-${i}`}>{clue}</span>)}</div><CircleHelp /><h1>{question.question}</h1><div className="choices">{question.choices.map((choice, i) => { const answered = selected !== null; const state = answered ? (i === question.answer ? 'correct' : i === selected ? 'wrong' : '') : ''; return <button disabled={answered} className={state} key={choice} onClick={() => { setSelected(i); setAnswers([...answers, i]) }}><div className="choice-visual" aria-hidden="true">{visualSymbol(choice, i)}</div><span>{String.fromCharCode(65 + i)}</span><strong>{choice}</strong>{state === 'correct' && <Check />}</button> })}</div>{selected !== null && <div className={`explanation ${selected === question.answer ? 'correct' : 'wrong'}`}><strong>{selected === question.answer ? '正解！' : 'おしい！'}</strong><p>{question.explanation}</p><button className="primary" onClick={() => { setCurrent(current + 1); setSelected(null) }}>{current === 2 ? '結果を見る' : '次の問題'} <ChevronRight /></button></div>}</div></div>
 }
 
 function ExplorePage() {

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Award, BookOpen, Check, ChevronLeft, ChevronRight, CircleHelp, Coffee, Download, Flame, Home, Leaf, ListFilter, MapPin, RotateCcw, Search, Settings, SlidersHorizontal, Sprout, Trash2, Upload } from 'lucide-react'
+import { ArrowRight, Award, Beaker, BookOpen, Check, ChevronLeft, ChevronRight, CircleHelp, Coffee, Download, Flame, Home, Leaf, ListFilter, MapPin, RotateCcw, Search, Settings, SlidersHorizontal, Sprout, Trash2, Upload } from 'lucide-react'
 import { chapters, getLesson, lessons } from './data'
 import { origins, processEffects, roastEffects } from './exploreData'
+import Practice, { type PracticePage } from './Practice'
 import { calculateStreak, createBrewLog, emptyData, formatDuration, kindLabels, kindOf, loadData, saveData, todayKey, validateBackup } from './storage'
 import type { AppData, BrewKind, BrewLog, ChapterId, Lesson, LessonSection, Ratings } from './types'
 
 type View =
-  | { page: 'home' | 'course' | 'explore' | 'logs' | 'badges' | 'settings' | 'brew-form'; id?: string }
+  | { page: 'home' | 'course' | 'explore' | 'logs' | 'badges' | 'settings' | 'brew-form' | PracticePage; id?: string }
   | { page: 'lesson' | 'quiz' | 'log-detail'; id: string }
 
 const chapterIcon: Record<ChapterId, typeof Coffee> = { origin: Sprout, process: Leaf, roast: Flame, brew: Coffee }
@@ -32,6 +33,7 @@ function App() {
       case 'lesson': return <LessonPage lesson={getLesson(view.id)!} data={data} navigate={setView} update={update} />
       case 'quiz': return <QuizPage lesson={getLesson(view.id)!} data={data} navigate={setView} update={update} />
       case 'explore': return <ExplorePage />
+      case 'practice': case 'taste-training': case 'order-guide': case 'brew-lab': case 'troubleshoot': case 'taste-profile': return <Practice page={view.page} logs={data.brewLogs} go={(page) => setView({ page } as View)} />
       case 'brew-form': return <BrewForm update={update} navigate={setView} notify={notify} existing={view.id ? data.brewLogs.find((l) => l.id === view.id) : undefined} />
       case 'logs': return <LogsPage data={data} navigate={setView} />
       case 'log-detail': return <LogDetail log={data.brewLogs.find((l) => l.id === view.id)!} navigate={setView} update={update} notify={notify} />
@@ -69,6 +71,7 @@ function HomePage({ data, navigate }: { data: AppData; navigate: (v: View) => vo
       <div className="cup-art" aria-hidden="true"><span className="steam s1" /><span className="steam s2" /><div className="cup"><div className="coffee-surface" /></div><div className="saucer" /><span className="bean b1">◒</span><span className="bean b2">◒</span></div>
     </section>
     <div className="page-grid home-grid">
+      <section className="card practice-entry"><div><span className="eyebrow">PRACTICE STUDIO</span><h2>知識を、使える力に。</h2><p>味を表現する、店員さんに伝える、抽出を調整する。実践形式で身につけます。</p></div><button className="primary" onClick={() => navigate({ page: 'practice' })}>実践トレーニング <ArrowRight size={17} /></button></section>
       <section className="card daily-card"><div className="section-heading"><div><span className="eyebrow">TODAY'S LESSON</span><h2>今日のおすすめ</h2></div><div className="mini-streak"><Flame size={17} /> {streak}日</div></div>
         <div className="lesson-feature"><div className="lesson-number">{String(next.number).padStart(2, '0')}</div><div><span>{chapters.find((c) => c.id === next.chapter)?.title} · {next.minutes}分</span><h3>{next.title}</h3><p>{next.subtitle}</p></div></div>
         <button className="primary wide" onClick={() => navigate({ page: 'lesson', id: next.id })}>{data.completedLessons.includes(next.id) ? 'もう一度学ぶ' : 'レッスンを始める'} <ChevronRight size={18} /></button>
@@ -81,6 +84,7 @@ function HomePage({ data, navigate }: { data: AppData; navigate: (v: View) => vo
 
 function CoursePage({ data, navigate }: { data: AppData; navigate: (v: View) => void }) {
   return <div className="page narrow"><PageTitle eyebrow="LEARNING PATH" title="コーヒーを、順番に知る。" copy="4つの章を旅するように学びます。気になるところから始めても大丈夫。" />
+    <button className="course-practice" onClick={() => navigate({ page: 'practice' })}><Beaker /><div><span>実践トレーニング</span><strong>学んだ知識を、味と言葉につなげる</strong></div><ChevronRight /></button>
     <div className="chapter-list">{chapters.map((chapter) => { const Icon = chapterIcon[chapter.id]; const list = lessons.filter((l) => l.chapter === chapter.id); const done = list.filter((l) => data.completedLessons.includes(l.id)).length; return <section className="chapter-card" key={chapter.id} style={{ '--chapter': chapter.color } as React.CSSProperties}><div className="chapter-head"><div className="chapter-icon"><Icon /></div><div><span>CHAPTER {chapter.number}</span><h2>{chapter.title}</h2><p>{chapter.description}</p></div><div className="chapter-score">{done}<small>/3</small></div></div><div className="lesson-list">{list.map((lesson) => { const complete = data.completedLessons.includes(lesson.id); return <button key={lesson.id} onClick={() => navigate({ page: 'lesson', id: lesson.id })}><span className={`status ${complete ? 'done' : ''}`}>{complete ? <Check size={15} /> : lesson.number}</span><div><h3>{lesson.title}</h3><p>{lesson.subtitle} · {lesson.minutes}分</p></div><ChevronRight size={19} /></button> })}</div></section> })}</div>
   </div>
 }

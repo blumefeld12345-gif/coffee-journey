@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Award, BookOpen, Check, ChevronLeft, ChevronRight, CircleHelp, Coffee, Download, Flame, Home, Leaf, ListFilter, RotateCcw, Settings, Sprout, Trash2, Upload } from 'lucide-react'
+import { Award, BookOpen, Check, ChevronLeft, ChevronRight, CircleHelp, Coffee, Download, Flame, Home, Leaf, ListFilter, MapPin, RotateCcw, Search, Settings, SlidersHorizontal, Sprout, Trash2, Upload } from 'lucide-react'
 import { chapters, getLesson, lessons } from './data'
+import { origins, processEffects, roastEffects } from './exploreData'
 import { calculateStreak, createBrewLog, emptyData, formatDuration, kindLabels, kindOf, loadData, saveData, todayKey, validateBackup } from './storage'
 import type { AppData, BrewKind, BrewLog, ChapterId, Lesson, LessonSection, Ratings } from './types'
 
 type View =
-  | { page: 'home' | 'course' | 'logs' | 'badges' | 'settings' | 'brew-form'; id?: string }
+  | { page: 'home' | 'course' | 'explore' | 'logs' | 'badges' | 'settings' | 'brew-form'; id?: string }
   | { page: 'lesson' | 'quiz' | 'log-detail'; id: string }
 
 const chapterIcon: Record<ChapterId, typeof Coffee> = { origin: Sprout, process: Leaf, roast: Flame, brew: Coffee }
@@ -30,6 +31,7 @@ function App() {
       case 'course': return <CoursePage data={data} navigate={setView} />
       case 'lesson': return <LessonPage lesson={getLesson(view.id)!} data={data} navigate={setView} update={update} />
       case 'quiz': return <QuizPage lesson={getLesson(view.id)!} data={data} navigate={setView} update={update} />
+      case 'explore': return <ExplorePage />
       case 'brew-form': return <BrewForm update={update} navigate={setView} notify={notify} existing={view.id ? data.brewLogs.find((l) => l.id === view.id) : undefined} />
       case 'logs': return <LogsPage data={data} navigate={setView} />
       case 'log-detail': return <LogDetail log={data.brewLogs.find((l) => l.id === view.id)!} navigate={setView} update={update} notify={notify} />
@@ -39,14 +41,14 @@ function App() {
   })()
 
   return <div className="app-shell">
-    <header className="topbar"><button className="brand" onClick={() => setView({ page: 'home' })} aria-label="ホームへ"><span className="brand-mark"><Coffee size={20} /></span><span>Coffee <i>Journey</i></span></button><p>一杯ずつ、詳しくなる。</p></header>
+    <header className="topbar"><button className="brand" onClick={() => setView({ page: 'home' })} aria-label="ホームへ"><span className="brand-mark"><Coffee size={20} /></span><span>Coffee <i>Journey</i></span></button><div className="top-actions"><p>一杯ずつ、詳しくなる。</p><button onClick={() => setView({ page: 'settings' })} aria-label="設定"><Settings size={19} /></button></div></header>
     <main>{content}</main>
     <nav className="bottom-nav" aria-label="メインナビゲーション">
       <NavButton active={view.page === 'home'} icon={Home} label="ホーム" onClick={() => setView({ page: 'home' })} />
       <NavButton active={['course', 'lesson', 'quiz'].includes(view.page)} icon={BookOpen} label="学ぶ" onClick={() => setView({ page: 'course' })} />
       <button className="brew-fab" onClick={() => setView({ page: 'brew-form' })} aria-label="抽出を記録"><Coffee /><span>記録</span></button>
       <NavButton active={['logs', 'log-detail'].includes(view.page)} icon={ListFilter} label="記録" onClick={() => setView({ page: 'logs' })} />
-      <NavButton active={view.page === 'settings'} icon={Settings} label="設定" onClick={() => setView({ page: 'settings' })} />
+      <NavButton active={view.page === 'explore'} icon={Search} label="調べる" onClick={() => setView({ page: 'explore' })} />
     </nav>
     {toast && <div className="toast" role="status"><Check size={18} />{toast}</div>}
   </div>
@@ -112,6 +114,43 @@ function QuizPage({ lesson, data, navigate, update }: { lesson: Lesson; data: Ap
   if (finished) return <div className="page quiz-result"><div className="result-ring"><strong>{score}</strong><span>/ 3</span></div><span className="eyebrow">LESSON COMPLETE</span><h1>{score === 3 ? 'パーフェクト！' : '一歩ずつ、詳しくなっています。'}</h1><p>{score === 3 ? '知識がきれいにつながりました。次の一杯で確かめてみましょう。' : '解説を思い出しながら、もう一度挑戦しても大丈夫です。'}</p><div className="result-actions"><button className="primary" onClick={() => navigate({ page: 'course' })}>コースへ戻る</button><button className="secondary" onClick={() => { setCurrent(0); setAnswers([]); setSelected(null) }}><RotateCcw size={17} /> もう一度</button></div><p className="best-score">ベストスコア：{Math.max(data.quizScores[lesson.id] ?? 0, score)} / 3</p></div>
   const question = lesson.quiz[current]
   return <div className="page quiz-page"><button className="back" onClick={() => navigate({ page: 'lesson', id: lesson.id })}><ChevronLeft /> レッスンへ</button><div className="quiz-progress"><span>QUESTION {current + 1} / 3</span><div>{lesson.quiz.map((_, i) => <i key={i} className={i <= current ? 'active' : ''} />)}</div></div><div className="quiz-card"><CircleHelp /><h1>{question.question}</h1><div className="choices">{question.choices.map((choice, i) => { const answered = selected !== null; const state = answered ? (i === question.answer ? 'correct' : i === selected ? 'wrong' : '') : ''; return <button disabled={answered} className={state} key={choice} onClick={() => { setSelected(i); setAnswers([...answers, i]) }}><span>{String.fromCharCode(65 + i)}</span>{choice}{state === 'correct' && <Check />}</button> })}</div>{selected !== null && <div className={`explanation ${selected === question.answer ? 'correct' : 'wrong'}`}><strong>{selected === question.answer ? '正解！' : 'おしい！'}</strong><p>{question.explanation}</p><button className="primary" onClick={() => { setCurrent(current + 1); setSelected(null) }}>{current === 2 ? '結果を見る' : '次の問題'} <ChevronRight /></button></div>}</div></div>
+}
+
+function ExplorePage() {
+  const [query, setQuery] = useState('')
+  const [region, setRegion] = useState<'すべて' | 'アフリカ' | '中南米' | 'アジア'>('すべて')
+  const [originId, setOriginId] = useState('')
+  const [process, setProcess] = useState<keyof typeof processEffects>('unknown')
+  const [roast, setRoast] = useState<keyof typeof roastEffects>('unknown')
+  const selected = origins.find((item) => item.id === originId)
+  const needle = query.trim().toLowerCase()
+  const filtered = origins.filter((item) => (region === 'すべて' || item.region === region) && (!needle || [item.country, ...item.aliases, ...item.regions, ...item.flavors].some((text) => text.toLowerCase().includes(needle))))
+  const processInfo = processEffects[process]
+  const roastInfo = roastEffects[roast]
+  const acidity = selected ? Math.max(1, Math.min(5, selected.acidity + roastInfo.acidity)) : 0
+  const body = selected ? Math.max(1, Math.min(5, selected.body + roastInfo.body)) : 0
+  const flavorPrediction = selected ? [...new Set([...selected.flavors, ...processInfo.flavors, ...roastInfo.flavors])].slice(0, 7) : []
+
+  return <div className="page explore-page"><PageTitle eyebrow="COFFEE FINDER" title="この豆、どんな味？" copy="お店や袋に書かれた情報を、分かる範囲で選んでください。味わいの一般的な傾向を予想します。" />
+    {!selected ? <>
+      <div className="origin-search"><Search /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="国・地域名を検索　例：イルガチェフェ" /></div>
+      <div className="region-tabs">{(['すべて', 'アフリカ', '中南米', 'アジア'] as const).map((item) => <button className={region === item ? 'active' : ''} key={item} onClick={() => setRegion(item)}>{item}</button>)}</div>
+      <section className="finder-guide"><MapPin /><div><strong>まず、産地を選ぶ</strong><p>「イルガチェフェ」のような地域名でも検索できます。分からなければ、袋やメニューの国名を探してみましょう。</p></div></section>
+      <div className="origin-grid">{filtered.map((item) => <button key={item.id} onClick={() => { setOriginId(item.id); window.scrollTo({ top: 0, behavior: 'smooth' }) }}><span>{item.region}</span><h2>{item.country}</h2><p>{item.headline}</p><div>{item.flavors.slice(0, 3).map((flavor) => <i key={flavor}>{flavor}</i>)}</div><ChevronRight /></button>)}</div>
+      {!filtered.length && <div className="empty-state"><div><Search /></div><h2>該当する産地が見つかりません</h2><p>国名や地域名を短くして試してみてください。</p></div>}
+    </> : <>
+      <button className="back finder-back" onClick={() => setOriginId('')}><ChevronLeft /> 産地を選び直す</button>
+      <section className="origin-profile"><span>{selected.region} · ORIGIN GUIDE</span><h1>{selected.country}</h1><p>{selected.headline}</p><div>{selected.regions.map((item) => <i key={item}>{item}</i>)}</div></section>
+      <section className="finder-step"><div className="step-title"><span>01</span><div><h2>精製方法は？</h2><p>分からなければ「不明」のままで大丈夫。</p></div></div><div className="choice-chips">{Object.entries(processEffects).map(([key, item]) => <button className={process === key ? 'active' : ''} key={key} onClick={() => setProcess(key as keyof typeof processEffects)}>{item.label}</button>)}</div></section>
+      <section className="finder-step"><div className="step-title"><span>02</span><div><h2>焙煎度は？</h2><p>お店の表記に一番近いものを選びます。</p></div></div><div className="choice-chips">{Object.entries(roastEffects).map(([key, item]) => <button className={roast === key ? 'active' : ''} key={key} onClick={() => setRoast(key as keyof typeof roastEffects)}>{item.label}</button>)}</div></section>
+      <section className="taste-prediction"><div className="prediction-head"><SlidersHorizontal /><div><span>TASTE PREDICTION</span><h2>こんな一杯かもしれません</h2></div></div><div className="flavor-cloud">{flavorPrediction.map((flavor) => <span key={flavor}>{flavor}</span>)}</div><div className="prediction-bars"><TasteMeter label="酸味" value={acidity} left="穏やか" right="鮮やか" /><TasteMeter label="コク" value={body} left="軽やか" right="重厚" /></div><p className="origin-story">{selected.story}</p>{process !== 'unknown' && <div className="effect-note"><strong>{processInfo.label}</strong><p>{processInfo.note}</p></div>}{roast !== 'unknown' && <div className="effect-note"><strong>{roastInfo.label}</strong><p>{roastInfo.note}</p></div>}<div className="pairing"><Coffee /><div><span>こんなときに</span><p>{selected.pairWith}</p></div></div></section>
+      <p className="tendency-note">※ ここでの説明は一般的な傾向です。同じ産地でも、品種・農園・標高・精製・焙煎・抽出によって味わいは変わります。</p>
+    </>}
+  </div>
+}
+
+function TasteMeter({ label, value, left, right }: { label: string; value: number; left: string; right: string }) {
+  return <div className="finder-meter"><div><strong>{label}</strong><span>{left} ↔ {right}</span></div><div>{[1, 2, 3, 4, 5].map((n) => <i className={n <= value ? 'on' : ''} key={n} />)}</div></div>
 }
 
 function BrewForm({ update, navigate, notify, existing }: { update: (fn: (d: AppData) => AppData) => void; navigate: (v: View) => void; notify: (s: string) => void; existing?: BrewLog }) {

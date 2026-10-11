@@ -66,7 +66,8 @@ function NavButton({ active, icon: Icon, label, onClick }: { active: boolean; ic
 }
 
 function HomePage({ data, navigate }: { data: AppData; navigate: (v: View) => void }) {
-  const next = lessons.find((l) => !data.completedLessons.includes(l.id)) ?? lessons[0]
+  const allLessonsComplete = lessons.every((lesson) => data.completedLessons.includes(lesson.id))
+  const next = lessons.find((lesson) => !data.completedLessons.includes(lesson.id)) ?? lessons[0]
   const progress = Math.round((data.completedLessons.length / lessons.length) * 100)
   const recent = data.brewLogs[0]
   const streak = calculateStreak(data.activityDates)
@@ -76,9 +77,9 @@ function HomePage({ data, navigate }: { data: AppData; navigate: (v: View) => vo
       <div className="cup-art" aria-hidden="true"><span className="steam s1" /><span className="steam s2" /><div className="cup"><div className="coffee-surface" /></div><div className="saucer" /><span className="bean b1">◒</span><span className="bean b2">◒</span></div>
     </section>
     <div className="page-grid home-grid">
-      <section className="card daily-card"><div className="section-heading"><div><span className="eyebrow">TODAY'S LESSON</span><h2>今日のおすすめ</h2></div><div className="mini-streak"><Flame size={17} /> {streak}日</div></div>
+      <section className="card daily-card"><div className="section-heading"><div><span className="eyebrow">{allLessonsComplete ? 'REVIEW' : 'NEXT LESSON'}</span><h2>{allLessonsComplete ? '学びを振り返る' : '次に学ぶ'}</h2></div><div className="mini-streak"><Flame size={17} /> {streak}日</div></div>
         <div className="lesson-feature"><div className="lesson-number">{String(next.number).padStart(2, '0')}</div><div><span>{chapters.find((c) => c.id === next.chapter)?.title} · {next.minutes}分</span><h3>{next.title}</h3><p>{next.subtitle}</p></div></div>
-        <button className="primary wide" onClick={() => navigate({ page: 'lesson', id: next.id })}>{data.completedLessons.includes(next.id) ? 'もう一度学ぶ' : 'レッスンを始める'} <ChevronRight size={18} /></button>
+        <button className="primary wide" onClick={() => navigate({ page: 'lesson', id: next.id })}>{allLessonsComplete ? '最初から復習する' : 'このレッスンを学ぶ'} <ChevronRight size={18} /></button>
       </section>
       <section className="card progress-card"><div className="section-heading"><div><span className="eyebrow">YOUR PROGRESS</span><h2>学びの進み具合</h2></div><strong>{progress}<small>%</small></strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><p>{data.completedLessons.length} / {lessons.length} レッスン完了</p><div className="chapter-dots level-dots">{learningLevels.map((level) => { const list = lessons.filter((l) => l.level === level.id); return <div key={level.id}><span style={{ background: level.color }} />{level.title}<b>{list.filter((l) => data.completedLessons.includes(l.id)).length}/{list.length}</b></div> })}</div><button className="text-button" onClick={() => navigate({ page: 'course' })}>すべてのコースを見る <ChevronRight size={16} /></button></section>
       <section className="card recent-card"><div className="section-heading"><div><span className="eyebrow">COFFEE JOURNAL</span><h2>最近の一杯</h2></div><button className="icon-button" onClick={() => navigate({ page: 'logs' })}><ChevronRight /></button></div>{recent ? <button className="recent-log" onClick={() => navigate({ page: 'log-detail', id: recent.id })}><div className="bean-thumb"><Coffee /></div><div><span className={`kind-pill kind-${kindOf(recent)}`}>{kindLabels[kindOf(recent)]}</span><h3>{recent.bean}</h3><p>{recent.cafeName || recent.brand || recent.origin || recent.date}</p><div className="stars">{'★'.repeat(recent.ratings.liking)}{'☆'.repeat(5 - recent.ratings.liking)}</div></div></button> : <div className="empty-compact"><Coffee /><p>家でもカフェでも、最初の一杯を<br />記録してみましょう。</p><button className="secondary" onClick={() => navigate({ page: 'brew-form' })}>記録する</button></div>}</section>

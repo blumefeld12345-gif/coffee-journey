@@ -2,14 +2,20 @@ import { describe, expect, it } from 'vitest'
 import { chapters, lessons } from './data'
 
 describe('lesson curriculum', () => {
-  it('contains four chapters with three lessons each', () => {
+  it('keeps all four knowledge themes represented', () => {
     expect(chapters).toHaveLength(4)
-    for (const chapter of chapters) expect(lessons.filter((lesson) => lesson.chapter === chapter.id)).toHaveLength(3)
+    for (const chapter of chapters) expect(lessons.some((lesson) => lesson.chapter === chapter.id)).toBe(true)
   })
 
-  it('contains 12 unique lessons with three valid questions each', () => {
-    expect(lessons).toHaveLength(12)
-    expect(new Set(lessons.map((lesson) => lesson.id)).size).toBe(12)
+  it('contains six lessons at each learning level', () => {
+    for (const level of ['beginner', 'intermediate', 'advanced']) {
+      expect(lessons.filter((lesson) => lesson.level === level)).toHaveLength(6)
+    }
+  })
+
+  it('contains 18 unique lessons with three valid questions each', () => {
+    expect(lessons).toHaveLength(18)
+    expect(new Set(lessons.map((lesson) => lesson.id)).size).toBe(18)
     for (const lesson of lessons) {
       expect(lesson.quiz).toHaveLength(3)
       for (const question of lesson.quiz) expect(question.answer).toBeLessThan(question.choices.length)

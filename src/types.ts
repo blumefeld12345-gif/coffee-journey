@@ -18,6 +18,7 @@ export type LessonSection = {
 export type Lesson = {
   id: string
   chapter: ChapterId
+  level: 'beginner' | 'intermediate' | 'advanced'
   number: number
   title: string
   subtitle: string

@@ -53,10 +53,9 @@ function OrderGuide({ go }: { go: Props['go'] }) {
   const [acid, setAcid] = useState('ほどよい')
   const [body, setBody] = useState('軽やか')
   const [aroma, setAroma] = useState('柑橘・花')
-  const [drink, setDrink] = useState('ハンドドリップ')
   const origin = aroma === '柑橘・花' ? 'エチオピアやパナマ' : aroma === 'ベリー・果実' ? 'ケニアやルワンダ' : aroma === 'ナッツ・チョコ' ? 'ブラジルやグアテマラ' : 'インドネシアなど'
-  const phrase = `${acid === '控えめ' ? '酸味は穏やかで' : acid === '鮮やか' ? '明るい酸味があり' : '酸味と甘さのバランスがよく'}、${body}で、${aroma}のような香りのコーヒーを${drink}で飲みたいです。おすすめはありますか？`
-  return <div className="page practice-detail"><Back go={go} /><PracticeTitle eyebrow="CAFE CONVERSATION" title="好みを、店員さんへ伝える。" copy="4つ選ぶだけで、注文に使える文章を作ります。" /><ChoiceRow number="01" title="酸味" values={['控えめ', 'ほどよい', '鮮やか']} value={acid} set={setAcid} /><ChoiceRow number="02" title="口当たり" values={['軽やか', 'なめらか', 'しっかり']} value={body} set={setBody} /><ChoiceRow number="03" title="好きな香り" values={['柑橘・花', 'ベリー・果実', 'ナッツ・チョコ', 'ハーブ・スパイス']} value={aroma} set={setAroma} /><ChoiceRow number="04" title="飲み方" values={['ハンドドリップ', 'エスプレッソ系', 'アイス']} value={drink} set={setDrink} />
+  const phrase = `${acid === '控えめ' ? '酸味は穏やかで' : acid === '鮮やか' ? '明るい酸味があり' : '酸味と甘さのバランスがよく'}、${body}で、${aroma}のような香りの豆を探しています。おすすめはありますか？`
+  return <div className="page practice-detail"><Back go={go} /><PracticeTitle eyebrow="CAFE CONVERSATION" title="好みを、店員さんへ伝える。" copy="3つ選ぶだけで、探しているコーヒー豆を伝える文章を作ります。" /><ChoiceRow number="01" title="酸味" values={['控えめ', 'ほどよい', '鮮やか']} value={acid} set={setAcid} /><ChoiceRow number="02" title="口当たり" values={['軽やか', 'なめらか', 'しっかり']} value={body} set={setBody} /><ChoiceRow number="03" title="好きな香り" values={['柑橘・花', 'ベリー・果実', 'ナッツ・チョコ', 'ハーブ・スパイス']} value={aroma} set={setAroma} />
     <section className="order-result"><MessageCircle /><span>店員さんへの伝え方</span><blockquote>「{phrase}」</blockquote><div><strong>産地の候補</strong><p>{origin}の豆に、近い特徴が見つかるかもしれません。</p></div><div><strong>追加で聞いてみる</strong><p>「精製方法と焙煎度も教えてください」と聞くと、味と情報がつながります。</p></div></section></div>
 }
 

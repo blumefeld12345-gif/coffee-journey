@@ -119,4 +119,40 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 @media (max-width: 390px) { .hero h1 { font-size: 36px; }.field-grid { grid-template-columns: 1fr; }.rating { grid-template-columns: 1fr; }.rating > div:last-child { justify-content: flex-start; }.chapter-score { display: none; }.chapter-head { grid-template-columns: 45px 1fr; }.badge-grid { grid-template-columns: 1fr; } }
 @media (max-width: 720px) { .lesson-art { height: 210px; }.quiz-art { height: 180px; margin: -24px -12px 19px; }.lesson-roadmap { grid-template-columns: 1fr; }.concept-diagram { min-height: 235px; padding: 15px 10px; }.diagram-track { grid-template-columns: repeat(2, 1fr); gap: 7px; }.diagram-node { min-height: 98px; border-radius: 14px; }.diagram-node i { width: 32px; height: 32px; margin-bottom: 7px; font-size: 16px; }.diagram-node + .diagram-node::before { display: none; } }
+.review-skills button { padding: 7px 10px; border: 0; border-radius: 20px; color: #7c4e35; background: #efe0d1; font-size: 10px; cursor: pointer; }
+.correct-reason { padding-top: 10px; border-top: 1px solid rgba(75,97,81,.18); }
+.lesson-groups details { border-top: 1px solid var(--line); }
+.lesson-groups summary { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; color: var(--green); background: #f3eee5; cursor: pointer; font-size: 11px; font-weight: 700; }
+.lesson-groups summary small { color: var(--muted); font-weight: 500; }
+.lesson-groups details[open] summary { background: #e8efe8; }
+.lesson-sources { margin: 0 0 24px; padding: 16px 18px; border-radius: 12px; background: #f1ece3; }
+.lesson-sources span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 9px; }
+.lesson-sources a { display: inline-block; margin: 3px 12px 3px 0; color: var(--green); font-size: 10px; }
+.country-map { position: relative; grid-column: 1 / -1; height: 235px; margin: 0; overflow: hidden; border-radius: 16px; color: white; background: linear-gradient(145deg,#244d42,#6d8065); }
+.world-shape { position: absolute; inset: 12px 16px 38px; opacity: .32; }
+.continent { position: absolute; display: block; background: #f0dfbd; transform: rotate(-8deg); }
+.americas { left: 7%; top: 10%; width: 22%; height: 72%; border-radius: 60% 35% 65% 30%; clip-path: polygon(12% 0,85% 7%,100% 30%,70% 45%,72% 100%,45% 82%,35% 48%,0 27%); }
+.europe-africa { left: 43%; top: 17%; width: 20%; height: 66%; border-radius: 45%; clip-path: polygon(0 8%,75% 0,100% 22%,72% 38%,65% 100%,32% 90%,20% 44%); }
+.asia { left: 57%; top: 9%; width: 35%; height: 52%; border-radius: 50% 55% 35% 50%; clip-path: polygon(0 13%,70% 0,100% 35%,76% 78%,48% 65%,22% 100%,15% 50%); }
+.oceania { right: 4%; bottom: 10%; width: 12%; height: 18%; border-radius: 55% 40%; }
+.country-pin { position: absolute; z-index: 2; width: 15px; height: 15px; transform: translate(-50%,-50%); border: 3px solid white; border-radius: 50%; background: #df9f50; box-shadow: 0 0 0 7px rgba(223,159,80,.25); }
+.country-pin b { position: absolute; left: 17px; top: -8px; width: max-content; max-width: 120px; padding: 5px 8px; border-radius: 7px; color: #294a3f; background: #fff8eb; font-size: 10px; }
+.country-map figcaption { position: absolute; left: 15px; right: 15px; bottom: 10px; color: rgba(255,255,255,.75); font-size: 9px; }
+
+@media (max-width: 720px) {
+  .quiz-progress { align-items: flex-end; gap: 10px; }
+  .quiz-progress > span { flex: none; }
+  .quiz-progress div { flex: 1; gap: 3px; }
+  .quiz-progress i { min-width: 0; width: auto; flex: 1; }
+  .choices { grid-template-columns: 1fr; gap: 8px; }
+  .choices button { min-height: 82px; padding: 10px 12px 10px 84px; justify-content: center; }
+  .choice-visual { position: absolute; left: 9px; top: 9px; width: 62px; min-height: 62px; margin: 0; font-size: 25px; }
+  .choices button > span { left: 50px; top: 8px; }
+  .choices button strong { font-size: 11px; }
+}
+@media (max-width: 390px) {
+  .level-overview { grid-template-columns: 1fr; }
+  .level-overview > div { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; }
+  .level-overview strong { margin: 0; font-size: 16px; }
+}
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }

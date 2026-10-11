@@ -14,13 +14,22 @@ describe('suggestNext', () => {
 })
 
 describe('validateBackup', () => {
-  it('migrates v1 learning state while preserving coffee logs', () => {
+  it('resets all v1 data for the new curriculum', () => {
     const log = { id: 'old-log' }
     const migrated = validateBackup({ version: 1, completedLessons: ['old'], quizScores: { old: 3 }, activityDates: ['2026-10-11'], brewLogs: [log] })
-    expect(migrated.version).toBe(2)
+    expect(migrated.version).toBe(3)
+    expect(migrated.curriculumVersion).toBe(3)
     expect(migrated.completedLessons).toEqual([])
     expect(migrated.quizScores).toEqual({})
-    expect(migrated.brewLogs).toEqual([log])
+    expect(migrated.brewLogs).toEqual([])
+  })
+  it('resets v2 data for the new curriculum', () => {
+    const migrated = validateBackup({ version: 2, completedLessons: ['old'], quizScores: { old: 4 }, activityDates: ['2026-10-11'], brewLogs: [{ id: 'old' }] })
+    expect(migrated).toMatchObject({ version: 3, curriculumVersion: 3, completedLessons: [], quizScores: {}, activityDates: [], brewLogs: [] })
+  })
+  it('accepts a valid v3 backup', () => {
+    const current = { version: 3, curriculumVersion: 3, completedLessons: ['base-plant'], quizScores: { 'base-plant': 6 }, activityDates: ['2026-10-12'], brewLogs: [] }
+    expect(validateBackup(current)).toEqual(current)
   })
   it('rejects other data', () => expect(() => validateBackup({ hello: 'world' })).toThrow())
 })

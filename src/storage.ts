@@ -2,7 +2,8 @@ import type { AppData, BrewLog, Ratings } from './types'
 
 export const STORAGE_KEY = 'coffee-journey-data-v1'
 
-export const emptyData: AppData = { version: 2, completedLessons: [], quizScores: {}, activityDates: [], brewLogs: [] }
+export const emptyData: AppData = { version: 3, curriculumVersion: 3, completedLessons: [], quizScores: {}, activityDates: [], brewLogs: [] }
+const freshData = (): AppData => ({ ...emptyData, completedLessons: [], quizScores: {}, activityDates: [], brewLogs: [] })
 
 export function todayKey(date = new Date()) {
   const y = date.getFullYear()
@@ -14,10 +15,10 @@ export function todayKey(date = new Date()) {
 export function loadData(): AppData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return emptyData
+    if (!raw) return freshData()
     return validateBackup(JSON.parse(raw))
   } catch {
-    return emptyData
+    return freshData()
   }
 }
 
@@ -29,10 +30,11 @@ export function validateBackup(value: unknown): AppData {
   if (!value || typeof value !== 'object') throw new Error('バックアップの形式が正しくありません。')
   const data = value as Partial<AppData>
   const sourceVersion = Number((value as { version?: number }).version)
-  if (![1, 2].includes(sourceVersion) || !Array.isArray(data.completedLessons) || !Array.isArray(data.activityDates) || !Array.isArray(data.brewLogs) || !data.quizScores || typeof data.quizScores !== 'object') {
+  if (![1, 2, 3].includes(sourceVersion) || !Array.isArray(data.completedLessons) || !Array.isArray(data.activityDates) || !Array.isArray(data.brewLogs) || !data.quizScores || typeof data.quizScores !== 'object') {
     throw new Error('Coffee Journey のバックアップファイルではありません。')
   }
-  if (sourceVersion === 1) return { ...emptyData, brewLogs: data.brewLogs }
+  if (sourceVersion < 3) return freshData()
+  if ((data as Partial<AppData>).curriculumVersion !== 3) return freshData()
   return data as AppData
 }
 

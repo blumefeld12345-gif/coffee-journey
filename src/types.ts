@@ -1,11 +1,17 @@
 export type ChapterId = 'origin' | 'process' | 'roast' | 'brew'
 
+export type LearningPath = 'foundation' | 'origins' | 'brewing'
+export type RegionGroup = '基礎' | '共通知識' | '南米' | '中米・カリブ・ハワイ' | 'アフリカ・中東' | 'アジア・オセアニア' | '比較実践' | '抽出実践'
+
 export type QuizQuestion = {
-  skill: '用語' | '仕組み' | '比較' | '実践'
+  id: string
+  skill: '知識' | '地域' | '品種' | '生産' | '読解' | '比較' | '実践' | '診断'
+  sectionRole: LessonSection['role']
   question: string
   choices: string[]
   answer: number
   explanation: string
+  choiceExplanations: string[]
 }
 
 export type LessonSection = {
@@ -21,7 +27,9 @@ export type LessonSection = {
 export type Lesson = {
   id: string
   chapter: ChapterId
-  level: 'beginner' | 'intermediate' | 'advanced'
+  path: LearningPath
+  group: RegionGroup
+  countryCode?: string
   number: number
   title: string
   subtitle: string
@@ -32,6 +40,7 @@ export type Lesson = {
   sections: LessonSection[]
   terms: { term: string; meaning: string }[]
   quiz: QuizQuestion[]
+  sources: { label: string; url: string }[]
 }
 
 export type Ratings = { acidity: number; bitterness: number; sweetness: number; body: number; liking: number }
@@ -59,7 +68,8 @@ export type BrewLog = {
 }
 
 export type AppData = {
-  version: 2
+  version: 3
+  curriculumVersion: 3
   completedLessons: string[]
   quizScores: Record<string, number>
   activityDates: string[]

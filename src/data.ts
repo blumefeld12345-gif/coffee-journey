@@ -37,11 +37,21 @@ const seeds: Seed[] = [
   { id:'advanced-dialin',chapter:'brew',level:'advanced',number:6,title:'ダイヤルイン',subtitle:'一変数ずつ好みに近づける',minutes:7,goal:'味を診断し次の一変数を選べる。',prerequisite:'上級1〜5。',takeaway:'記録→診断→一変数変更→再抽出で自分の基準を作る。',art:'dial-in',foundation:['正解探しではなく反復','基準を淹れ、濃さと味を記録し、原因候補を一つ選び、一変数だけ変更します。'],mechanism:['症状から最初の一手へ','薄いが良好なら比率、酸が尖るなら挽き目、苦く乾くなら粗さや湯温を抽出が弱まる方向へ動かします。'],cards:[['基準','条件を固定'],['記録','味を5軸で'],['診断','原因候補を一つ'],['変更','一変数だけ']],terms:[['ダイヤルイン','狙う味への抽出調整'],['一変数','一度に一つだけ変える条件'],['基準レシピ','調整の出発点']],quiz:[q('用語','狙う味への抽出調整は？',['ダイヤルイン','精製','選抜'],0,'ダイヤルインです。'),q('仕組み','一変数だけ変える理由は？',['原因を追える','必ず満点','記録不要'],0,'変更と結果を結べます。'),q('比較','薄いがバランス良好なら？',['湯を少し減らす','全部大幅変更','産地変更'],0,'濃度を動かします。'),q('実践','好みの一杯ができたら？',['同条件で再現','記録せず変更','忘れる'],0,'再現して基準にします。')]}
 ]
 
+const secondSectionOverrides: Record<string, { title?: string; body?: string; cards: [string, string][] }> = {
+  'beginner-plant': { title: 'コーヒーの「種」を区別する', body: '植物分類の種として、主にアラビカ種とカネフォラ種が流通し、リベリカ種もあります。ティピカやブルボンなどの品種は、これより一段細かな分類です。', cards: [['アラビカ種','香りや酸の多様性'],['カネフォラ種','ロブスタの呼称と関係'],['リベリカ種','流通量が比較的少ない'],['品種との違い','品種は種の中の分類']] },
+  'beginner-taste': { body: '最初に立ち上がる香り、口に含んだ味、舌触り、飲み込んだ後の余韻を時間順に確認します。これは5つの味の軸とは別の「観察する順番」です。', cards: [['1 香る','カップに近づける'],['2 含む','酸味・甘み・苦味'],['3 触れる','軽い・丸い・重い'],['4 残る','後味の長さと質']] }
+}
+
+const firstSectionOverrides: Record<string, [string, string][]> = {
+  'beginner-plant': [['チェリー','コーヒーノキの果実'],['種','果肉の内側にある'],['生豆','精製・乾燥後'],['焙煎豆→一杯','熱を加えて抽出']],
+  'beginner-taste': [['酸味','明るさ・果実感'],['苦味','カカオ・香ばしさ'],['甘み','丸さ・熟した印象'],['コク','口当たりの厚み'],['後味','飲んだ後の余韻']]
+}
+
 export const lessons: Lesson[] = seeds.map(({ art, foundation, mechanism, cards, terms, quiz, ...lesson }) => ({
   ...lesson,
   sections: [
-    s('前提', foundation[0], foundation[1], 'compare', cards.map(([label, detail], i) => item(label, detail, ['green','gold','berry','brown'][i])), art),
-    s(lesson.level === 'advanced' ? '使い方' : '比較', mechanism[0], `${mechanism[1]} ※ここで示す味や環境の関係は一般的傾向で、豆や器具、工程により例外があります。`, lesson.level === 'advanced' ? 'adjust' : 'process', cards.map(([label, detail]) => item(label, detail)))
+    s('前提', foundation[0], foundation[1], 'compare', (firstSectionOverrides[lesson.id] ?? cards).map(([label, detail], i) => item(label, detail, ['green','gold','berry','brown'][i])), art),
+    s(lesson.level === 'advanced' ? '使い方' : '比較', secondSectionOverrides[lesson.id]?.title ?? mechanism[0], `${secondSectionOverrides[lesson.id]?.body ?? mechanism[1]} ※ここで示す味や環境の関係は一般的傾向で、豆や器具、工程により例外があります。`, lesson.level === 'advanced' ? 'adjust' : 'process', (secondSectionOverrides[lesson.id]?.cards ?? terms).map(([label, detail]) => item(label, detail)))
   ],
   terms: terms.map(([term, meaning]) => ({ term, meaning })), quiz
 }))

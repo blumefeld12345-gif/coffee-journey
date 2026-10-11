@@ -13,15 +13,19 @@ describe('lesson curriculum', () => {
     }
   })
 
-  it('numbers the new intermediate path from one through six', () => {
-    expect(lessons.filter((lesson) => lesson.level === 'intermediate').map((lesson) => lesson.number).sort()).toEqual([1, 2, 3, 4, 5, 6])
+  it('numbers every learning level from one through six', () => {
+    for (const level of ['beginner', 'intermediate', 'advanced']) expect(lessons.filter((lesson) => lesson.level === level).map((lesson) => lesson.number).sort()).toEqual([1, 2, 3, 4, 5, 6])
   })
 
-  it('contains 18 unique lessons with three valid questions each', () => {
+  it('contains 18 illustrated lessons with four categorized questions each', () => {
     expect(lessons).toHaveLength(18)
     expect(new Set(lessons.map((lesson) => lesson.id)).size).toBe(18)
     for (const lesson of lessons) {
-      expect(lesson.quiz).toHaveLength(3)
+      expect(lesson.goal).toBeTruthy()
+      expect(lesson.prerequisite).toBeTruthy()
+      expect(lesson.sections.some((section) => section.art)).toBe(true)
+      expect(lesson.quiz).toHaveLength(4)
+      expect(lesson.quiz.map((question) => question.skill)).toEqual(['用語', '仕組み', '比較', '実践'])
       for (const question of lesson.quiz) expect(question.answer).toBeLessThan(question.choices.length)
     }
   })

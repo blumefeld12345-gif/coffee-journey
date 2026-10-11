@@ -1,6 +1,7 @@
 export type ChapterId = 'origin' | 'process' | 'roast' | 'brew'
 
 export type QuizQuestion = {
+  skill: '用語' | '仕組み' | '比較' | '実践'
   question: string
   choices: string[]
   answer: number
@@ -8,11 +9,12 @@ export type QuizQuestion = {
 }
 
 export type LessonSection = {
+  role: '前提' | '仕組み' | '比較' | '使い方'
   eyebrow: string
   title: string
   body: string
   visual: 'altitude' | 'countries' | 'flavor' | 'process' | 'compare' | 'spectrum' | 'heat' | 'recipe' | 'variables' | 'adjust'
-  art?: 'species' | 'varieties' | 'origin-map' | 'processing' | 'flavor'
+  art?: 'plant' | 'species' | 'taste' | 'climate' | 'processing' | 'roast' | 'basic-brew' | 'varieties' | 'terroir' | 'origin-map' | 'fermentation' | 'label' | 'flavor' | 'extraction' | 'grind' | 'ratio' | 'temperature' | 'pouring' | 'dial-in'
   items: { label: string; detail: string; tone?: string }[]
 }
 
@@ -24,6 +26,8 @@ export type Lesson = {
   title: string
   subtitle: string
   minutes: number
+  goal: string
+  prerequisite: string
   takeaway: string
   sections: LessonSection[]
   terms: { term: string; meaning: string }[]
@@ -55,7 +59,7 @@ export type BrewLog = {
 }
 
 export type AppData = {
-  version: 1
+  version: 2
   completedLessons: string[]
   quizScores: Record<string, number>
   activityDates: string[]

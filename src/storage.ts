@@ -2,7 +2,7 @@ import type { AppData, BrewLog, Ratings } from './types'
 
 export const STORAGE_KEY = 'coffee-journey-data-v1'
 
-export const emptyData: AppData = { version: 1, completedLessons: [], quizScores: {}, activityDates: [], brewLogs: [] }
+export const emptyData: AppData = { version: 2, completedLessons: [], quizScores: {}, activityDates: [], brewLogs: [] }
 
 export function todayKey(date = new Date()) {
   const y = date.getFullYear()
@@ -28,9 +28,11 @@ export function saveData(data: AppData) {
 export function validateBackup(value: unknown): AppData {
   if (!value || typeof value !== 'object') throw new Error('バックアップの形式が正しくありません。')
   const data = value as Partial<AppData>
-  if (data.version !== 1 || !Array.isArray(data.completedLessons) || !Array.isArray(data.activityDates) || !Array.isArray(data.brewLogs) || !data.quizScores || typeof data.quizScores !== 'object') {
+  const sourceVersion = Number((value as { version?: number }).version)
+  if (![1, 2].includes(sourceVersion) || !Array.isArray(data.completedLessons) || !Array.isArray(data.activityDates) || !Array.isArray(data.brewLogs) || !data.quizScores || typeof data.quizScores !== 'object') {
     throw new Error('Coffee Journey のバックアップファイルではありません。')
   }
+  if (sourceVersion === 1) return { ...emptyData, brewLogs: data.brewLogs }
   return data as AppData
 }
 

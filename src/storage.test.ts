@@ -14,7 +14,14 @@ describe('suggestNext', () => {
 })
 
 describe('validateBackup', () => {
-  it('accepts v1 app data', () => expect(validateBackup({ version: 1, completedLessons: [], quizScores: {}, activityDates: [], brewLogs: [] }).version).toBe(1))
+  it('migrates v1 learning state while preserving coffee logs', () => {
+    const log = { id: 'old-log' }
+    const migrated = validateBackup({ version: 1, completedLessons: ['old'], quizScores: { old: 3 }, activityDates: ['2026-10-11'], brewLogs: [log] })
+    expect(migrated.version).toBe(2)
+    expect(migrated.completedLessons).toEqual([])
+    expect(migrated.quizScores).toEqual({})
+    expect(migrated.brewLogs).toEqual([log])
+  })
   it('rejects other data', () => expect(() => validateBackup({ hello: 'world' })).toThrow())
 })
 

@@ -110,10 +110,10 @@ function LessonPage({ lesson, data, navigate, update }: { lesson: Lesson; data: 
   return <div className="lesson-page">
     <button className="back" onClick={() => navigate({ page: 'course' })}><ChevronLeft size={18} /> コース一覧</button>
     <header className="lesson-hero" style={{ '--chapter': chapter.color } as React.CSSProperties}><span>CHAPTER {chapter.number} · LESSON {lesson.number}</span><h1>{lesson.title}</h1><p>{lesson.subtitle}</p><div><span>約 {lesson.minutes} 分</span><span>{data.completedLessons.includes(lesson.id) ? '✓ 学習済み' : '図解レッスン'}</span></div></header>
-    <div className="lesson-content">{lesson.sections.map((section, i) => <LessonBlock key={i} section={section} />)}
+    <div className="lesson-content"><section className="lesson-roadmap"><div><span>今回のゴール</span><strong>{lesson.goal}</strong></div><div><span>ここまでの土台</span><p>{lesson.prerequisite}</p></div></section>{lesson.sections.map((section, i) => <LessonBlock key={i} section={section} />)}
       <section className="takeaway"><Coffee /><div><span>今日のひとこと</span><h2>{lesson.takeaway}</h2></div></section>
       <section className="terms"><span className="eyebrow">KEY WORDS</span><h2>覚えておきたい言葉</h2><div>{lesson.terms.map((term) => <article key={term.term}><strong>{term.term}</strong><p>{term.meaning}</p></article>)}</div></section>
-      <button className="primary quiz-start" onClick={() => { markComplete(); navigate({ page: 'quiz', id: lesson.id }) }}>3問クイズに挑戦 <ChevronRight /></button>
+      <button className="primary quiz-start" onClick={() => { markComplete(); navigate({ page: 'quiz', id: lesson.id }) }}>4問チェックに挑戦 <ChevronRight /></button>
       <div className="lesson-pagination"><button disabled={index === 0} onClick={() => navigate({ page: 'lesson', id: orderedLessons[index - 1].id })}><ChevronLeft /> 前へ</button><button disabled={index === orderedLessons.length - 1} onClick={() => navigate({ page: 'lesson', id: orderedLessons[index + 1].id })}>次へ <ChevronRight /></button></div>
     </div>
   </div>
@@ -121,18 +121,24 @@ function LessonPage({ lesson, data, navigate, update }: { lesson: Lesson; data: 
 
 function LessonBlock({ section }: { section: LessonSection }) {
   const atlas = section.visual === 'countries' && !section.art
-  return <section className={`lesson-block visual-${section.visual}`}><div className="lesson-text"><span className="eyebrow">{section.eyebrow}</span><h2>{section.title}</h2><p>{section.body}</p></div><div className={`visual-board ${atlas ? 'atlas-board' : ''} ${section.art ? 'has-art' : ''}`}>
-    {section.art && <figure className={`lesson-art art-${section.art}`}><img src={artUrl(section.art)} alt={`${section.title}の植物画による図解`} /></figure>}
+  const imageUrl = section.art ? artUrl(section.art) : undefined
+  return <section className={`lesson-block visual-${section.visual}`}><div className="lesson-text"><span className="section-role">{section.role}</span><span className="eyebrow">{section.eyebrow}</span><h2>{section.title}</h2><p>{section.body}</p></div><div className={`visual-board ${atlas ? 'atlas-board' : ''} ${section.art ? 'has-art' : ''}`}>
+    {section.art && (imageUrl ? <figure className={`lesson-art art-${section.art}`}><img src={imageUrl} alt={`${section.title}の図解`} /></figure> : <ConceptDiagram kind={section.art} items={section.items} />)}
     {atlas && <div className="atlas-map" aria-hidden="true"><span className="land land-one" /><span className="land land-two" /><span className="land land-three" /><i className="route route-one" /><i className="route route-two" /><b>ORIGIN MAP</b></div>}
     {section.items.map((item, i) => <article key={item.label} className={item.tone ?? ''}><div className="visual-symbol" aria-hidden="true">{visualSymbol(`${item.label} ${item.detail}`, i)}</div><span>{String(i + 1).padStart(2, '0')}</span><strong>{item.label}</strong><p>{item.detail}</p></article>)}</div></section>
 }
 
-const artFiles: Record<NonNullable<LessonSection['art']>, string> = {
-  species: 'coffee-species.png', varieties: 'arabica-varieties.png', 'origin-map': 'origin-map.png', processing: 'processing-methods.png', flavor: 'flavor-vocabulary.png'
+const artFiles: Partial<Record<NonNullable<LessonSection['art']>, string>> = {
+  plant: 'coffee-plant-journey.png', species: 'coffee-species.png', taste: 'flavor-vocabulary.png', varieties: 'arabica-varieties.png', 'origin-map': 'origin-map.png', processing: 'processing-methods.png', flavor: 'flavor-vocabulary.png'
 }
 
 function artUrl(art: NonNullable<LessonSection['art']>) {
-  return `${import.meta.env.BASE_URL}lesson-art/${artFiles[art]}`
+  const file = artFiles[art]
+  return file ? `${import.meta.env.BASE_URL}lesson-art/${file}` : undefined
+}
+
+function ConceptDiagram({ kind, items }: { kind: NonNullable<LessonSection['art']>; items: LessonSection['items'] }) {
+  return <figure className={`concept-diagram diagram-${kind}`} aria-label={`${kind}の概念図`}><div className="diagram-track">{items.map((entry, index) => <div key={entry.label} className="diagram-node"><i style={{ '--step': index } as React.CSSProperties}>{index + 1}</i><span>{entry.label}</span><small>{entry.detail}</small></div>)}</div></figure>
 }
 
 function visualSymbol(text: string, index = 0) {
@@ -158,10 +164,11 @@ function QuizPage({ lesson, data, navigate, update }: { lesson: Lesson; data: Ap
   const [current, setCurrent] = useState(0); const [answers, setAnswers] = useState<number[]>([]); const [selected, setSelected] = useState<number | null>(null)
   const finished = current >= lesson.quiz.length; const score = answers.filter((answer, i) => answer === lesson.quiz[i].answer).length
   useEffect(() => { if (finished) update((d) => ({ ...d, completedLessons: [...new Set([...d.completedLessons, lesson.id])], quizScores: { ...d.quizScores, [lesson.id]: Math.max(d.quizScores[lesson.id] ?? 0, score) }, activityDates: [...new Set([...d.activityDates, todayKey()])] })) }, [finished]) // eslint-disable-line react-hooks/exhaustive-deps
-  if (finished) return <div className="page quiz-result"><div className="result-ring"><strong>{score}</strong><span>/ 3</span></div><span className="eyebrow">LESSON COMPLETE</span><h1>{score === 3 ? 'パーフェクト！' : '一歩ずつ、詳しくなっています。'}</h1><p>{score === 3 ? '知識がきれいにつながりました。次の一杯で確かめてみましょう。' : '解説を思い出しながら、もう一度挑戦しても大丈夫です。'}</p><div className="result-actions"><button className="primary" onClick={() => navigate({ page: 'course' })}>コースへ戻る</button><button className="secondary" onClick={() => { setCurrent(0); setAnswers([]); setSelected(null) }}><RotateCcw size={17} /> もう一度</button></div><p className="best-score">ベストスコア：{Math.max(data.quizScores[lesson.id] ?? 0, score)} / 3</p></div>
+  if (finished) return <div className="page quiz-result"><div className="result-ring"><strong>{score}</strong><span>/ {lesson.quiz.length}</span></div><span className="eyebrow">LESSON COMPLETE</span><h1>{score === lesson.quiz.length ? 'パーフェクト！' : '理解を、もう一段つなげよう。'}</h1><p>{score === lesson.quiz.length ? '用語から実践まで、きれいにつながりました。' : '間違えた観点をレッスンで確認してから再挑戦できます。'}</p>{score < lesson.quiz.length && <div className="review-skills"><span>復習する観点</span>{lesson.quiz.filter((question, i) => answers[i] !== question.answer).map((question) => <b key={question.skill}>{question.skill}</b>)}</div>}<div className="result-actions"><button className="primary" onClick={() => navigate({ page: 'lesson', id: lesson.id })}>レッスンを復習</button><button className="secondary" onClick={() => { setCurrent(0); setAnswers([]); setSelected(null) }}><RotateCcw size={17} /> もう一度</button></div><p className="best-score">ベストスコア：{Math.max(data.quizScores[lesson.id] ?? 0, score)} / {lesson.quiz.length}</p></div>
   const question = lesson.quiz[current]
   const quizArt = lesson.sections.find((section) => section.art)?.art
-  return <div className="page quiz-page"><button className="back" onClick={() => navigate({ page: 'lesson', id: lesson.id })}><ChevronLeft /> レッスンへ</button><div className="quiz-progress"><span>QUESTION {current + 1} / 3</span><div>{lesson.quiz.map((_, i) => <i key={i} className={i <= current ? 'active' : ''} />)}</div></div><div className="quiz-card">{quizArt ? <div className={`quiz-art art-${quizArt}`} aria-hidden="true"><img src={artUrl(quizArt)} alt="" /></div> : <div className="quiz-clues" aria-hidden="true">{questionClues(question.question).map((clue, i) => <span key={`${clue}-${i}`}>{clue}</span>)}</div>}<CircleHelp /><h1>{question.question}</h1><div className="choices">{question.choices.map((choice, i) => { const answered = selected !== null; const state = answered ? (i === question.answer ? 'correct' : i === selected ? 'wrong' : '') : ''; return <button disabled={answered} className={state} key={choice} onClick={() => { setSelected(i); setAnswers([...answers, i]) }}>{quizArt ? <div className="choice-visual choice-photo" aria-hidden="true" style={{ backgroundImage: `url(${artUrl(quizArt)})`, backgroundPosition: `${i * 50}% center` }} /> : <div className="choice-visual" aria-hidden="true">{visualSymbol(choice, i)}</div>}<span>{String.fromCharCode(65 + i)}</span><strong>{choice}</strong>{state === 'correct' && <Check />}</button> })}</div>{selected !== null && <div className={`explanation ${selected === question.answer ? 'correct' : 'wrong'}`}><strong>{selected === question.answer ? '正解！' : 'おしい！'}</strong><p>{question.explanation}</p><button className="primary" onClick={() => { setCurrent(current + 1); setSelected(null) }}>{current === 2 ? '結果を見る' : '次の問題'} <ChevronRight /></button></div>}</div></div>
+  const quizImage = quizArt ? artUrl(quizArt) : undefined
+  return <div className="page quiz-page"><button className="back" onClick={() => navigate({ page: 'lesson', id: lesson.id })}><ChevronLeft /> レッスンへ</button><div className="quiz-progress"><span>{question.skill} · QUESTION {current + 1} / {lesson.quiz.length}</span><div>{lesson.quiz.map((_, i) => <i key={i} className={i <= current ? 'active' : ''} />)}</div></div><div className="quiz-card">{quizImage ? <div className={`quiz-art art-${quizArt}`} aria-hidden="true"><img src={quizImage} alt="" /></div> : <div className="quiz-clues" aria-hidden="true">{questionClues(question.question).map((clue, i) => <span key={`${clue}-${i}`}>{clue}</span>)}</div>}<CircleHelp /><h1>{question.question}</h1><div className="choices">{question.choices.map((choice, i) => { const answered = selected !== null; const state = answered ? (i === question.answer ? 'correct' : i === selected ? 'wrong' : '') : ''; return <button disabled={answered} className={state} key={choice} onClick={() => { setSelected(i); setAnswers([...answers, i]) }}>{quizImage ? <div className="choice-visual choice-photo" aria-hidden="true" style={{ backgroundImage: `url(${quizImage})`, backgroundPosition: `${i * 50}% center` }} /> : <div className="choice-visual" aria-hidden="true">{visualSymbol(choice, i)}</div>}<span>{String.fromCharCode(65 + i)}</span><strong>{choice}</strong>{state === 'correct' && <Check />}</button> })}</div>{selected !== null && <div className={`explanation ${selected === question.answer ? 'correct' : 'wrong'}`}><strong>{selected === question.answer ? '正解！' : 'おしい！'}</strong><p>{question.explanation}</p><button className="primary" onClick={() => { setCurrent(current + 1); setSelected(null) }}>{current === lesson.quiz.length - 1 ? '結果を見る' : '次の問題'} <ChevronRight /></button></div>}</div></div>
 }
 
 function ExplorePage() {
@@ -250,7 +257,7 @@ function LogDetail({ log, navigate, update, notify }: { log: BrewLog; navigate: 
 const badges = [
   { id: 'first', icon: Sprout, name: 'はじめの一歩', text: '最初のレッスンを完了', test: (d: AppData) => d.completedLessons.length >= 1 },
   { id: 'origin', icon: BookOpen, name: '産地の旅人', text: '産地の章を完了', test: (d: AppData) => lessons.filter((l) => l.chapter === 'origin').every((l) => d.completedLessons.includes(l.id)) },
-  { id: 'perfect', icon: Award, name: 'クイズマスター', text: 'いずれかのクイズで満点', test: (d: AppData) => Object.values(d.quizScores).some((x) => x === 3) },
+  { id: 'perfect', icon: Award, name: 'クイズマスター', text: 'いずれかのクイズで満点', test: (d: AppData) => Object.values(d.quizScores).some((x) => x === 4) },
   { id: 'brewer', icon: Coffee, name: 'ホームブリューワー', text: '最初の一杯を記録', test: (d: AppData) => d.brewLogs.length >= 1 },
   { id: 'journal', icon: ListFilter, name: '味の探究者', text: '5杯を記録', test: (d: AppData) => d.brewLogs.length >= 5 },
   { id: 'graduate', icon: Flame, name: 'コーヒー通への入口', text: '全18レッスンを完了', test: (d: AppData) => lessons.every((lesson) => d.completedLessons.includes(lesson.id)) }

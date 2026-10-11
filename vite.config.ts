@@ -19,7 +19,7 @@ export default defineConfig({
         start_url: './',
         icons: [{ src: './coffee-icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }]
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg}'] }
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,png}'] }
     })
   ],
   test: { environment: 'jsdom', globals: true }

@@ -12,6 +12,7 @@ export type LessonSection = {
   title: string
   body: string
   visual: 'altitude' | 'countries' | 'flavor' | 'process' | 'compare' | 'spectrum' | 'heat' | 'recipe' | 'variables' | 'adjust'
+  art?: 'species' | 'varieties' | 'origin-map' | 'processing' | 'flavor'
   items: { label: string; detail: string; tone?: string }[]
 }
 

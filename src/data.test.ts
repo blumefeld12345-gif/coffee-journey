@@ -13,6 +13,10 @@ describe('lesson curriculum', () => {
     }
   })
 
+  it('numbers the new intermediate path from one through six', () => {
+    expect(lessons.filter((lesson) => lesson.level === 'intermediate').map((lesson) => lesson.number).sort()).toEqual([1, 2, 3, 4, 5, 6])
+  })
+
   it('contains 18 unique lessons with three valid questions each', () => {
     expect(lessons).toHaveLength(18)
     expect(new Set(lessons.map((lesson) => lesson.id)).size).toBe(18)

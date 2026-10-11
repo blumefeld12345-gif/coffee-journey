@@ -16,6 +16,10 @@ const learningLevels = [
   { id: 'intermediate' as const, number: '02', title: '中級', description: '味と情報を結びつける', color: '#557764', icon: BookOpen },
   { id: 'advanced' as const, number: '03', title: '上級', description: '抽出を数字と技術で設計する', color: '#544238', icon: Beaker }
 ]
+const orderedLessons = learningLevels.flatMap((level) => {
+  const levelLessons = lessons.filter((lesson) => lesson.level === level.id)
+  return level.id === 'beginner' ? levelLessons : levelLessons.sort((a, b) => a.number - b.number)
+})
 const ratingLabels: { key: keyof Ratings; label: string; left: string; right: string }[] = [
   { key: 'acidity', label: '酸味', left: '穏やか', right: '鮮やか' }, { key: 'bitterness', label: '苦味', left: '軽い', right: '強い' },
   { key: 'sweetness', label: '甘み', left: '控えめ', right: '豊か' }, { key: 'body', label: 'コク', left: '軽やか', right: '重厚' },
@@ -66,9 +70,10 @@ function NavButton({ active, icon: Icon, label, onClick }: { active: boolean; ic
 }
 
 function HomePage({ data, navigate }: { data: AppData; navigate: (v: View) => void }) {
-  const allLessonsComplete = lessons.every((lesson) => data.completedLessons.includes(lesson.id))
-  const next = lessons.find((lesson) => !data.completedLessons.includes(lesson.id)) ?? lessons[0]
-  const progress = Math.round((data.completedLessons.length / lessons.length) * 100)
+  const completedCount = lessons.filter((lesson) => data.completedLessons.includes(lesson.id)).length
+  const allLessonsComplete = orderedLessons.every((lesson) => data.completedLessons.includes(lesson.id))
+  const next = orderedLessons.find((lesson) => !data.completedLessons.includes(lesson.id)) ?? orderedLessons[0]
+  const progress = Math.round((completedCount / lessons.length) * 100)
   const recent = data.brewLogs[0]
   const streak = calculateStreak(data.activityDates)
   return <>
@@ -81,7 +86,7 @@ function HomePage({ data, navigate }: { data: AppData; navigate: (v: View) => vo
         <div className="lesson-feature"><div className="lesson-number">{String(next.number).padStart(2, '0')}</div><div><span>{chapters.find((c) => c.id === next.chapter)?.title} · {next.minutes}分</span><h3>{next.title}</h3><p>{next.subtitle}</p></div></div>
         <button className="primary wide" onClick={() => navigate({ page: 'lesson', id: next.id })}>{allLessonsComplete ? '最初から復習する' : 'このレッスンを学ぶ'} <ChevronRight size={18} /></button>
       </section>
-      <section className="card progress-card"><div className="section-heading"><div><span className="eyebrow">YOUR PROGRESS</span><h2>学びの進み具合</h2></div><strong>{progress}<small>%</small></strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><p>{data.completedLessons.length} / {lessons.length} レッスン完了</p><div className="chapter-dots level-dots">{learningLevels.map((level) => { const list = lessons.filter((l) => l.level === level.id); return <div key={level.id}><span style={{ background: level.color }} />{level.title}<b>{list.filter((l) => data.completedLessons.includes(l.id)).length}/{list.length}</b></div> })}</div><button className="text-button" onClick={() => navigate({ page: 'course' })}>すべてのコースを見る <ChevronRight size={16} /></button></section>
+      <section className="card progress-card"><div className="section-heading"><div><span className="eyebrow">YOUR PROGRESS</span><h2>学びの進み具合</h2></div><strong>{progress}<small>%</small></strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><p>{completedCount} / {lessons.length} レッスン完了</p><div className="chapter-dots level-dots">{learningLevels.map((level) => { const list = orderedLessons.filter((l) => l.level === level.id); return <div key={level.id}><span style={{ background: level.color }} />{level.title}<b>{list.filter((l) => data.completedLessons.includes(l.id)).length}/{list.length}</b></div> })}</div><button className="text-button" onClick={() => navigate({ page: 'course' })}>すべてのコースを見る <ChevronRight size={16} /></button></section>
       <section className="card recent-card"><div className="section-heading"><div><span className="eyebrow">COFFEE JOURNAL</span><h2>最近の一杯</h2></div><button className="icon-button" onClick={() => navigate({ page: 'logs' })}><ChevronRight /></button></div>{recent ? <button className="recent-log" onClick={() => navigate({ page: 'log-detail', id: recent.id })}><div className="bean-thumb"><Coffee /></div><div><span className={`kind-pill kind-${kindOf(recent)}`}>{kindLabels[kindOf(recent)]}</span><h3>{recent.bean}</h3><p>{recent.cafeName || recent.brand || recent.origin || recent.date}</p><div className="stars">{'★'.repeat(recent.ratings.liking)}{'☆'.repeat(5 - recent.ratings.liking)}</div></div></button> : <div className="empty-compact"><Coffee /><p>家でもカフェでも、最初の一杯を<br />記録してみましょう。</p><button className="secondary" onClick={() => navigate({ page: 'brew-form' })}>記録する</button></div>}</section>
       <section className="card practice-entry"><div><span className="eyebrow">PRACTICE STUDIO</span><h2>知識を、使える力に。</h2><p>味を表現する、店員さんに伝える、抽出を調整する。実践形式で身につけます。</p></div><button className="primary" onClick={() => navigate({ page: 'practice' })}>実践トレーニング <ArrowRight size={17} /></button></section>
     </div>
@@ -90,8 +95,8 @@ function HomePage({ data, navigate }: { data: AppData; navigate: (v: View) => vo
 
 function CoursePage({ data, navigate }: { data: AppData; navigate: (v: View) => void }) {
   return <div className="page narrow"><PageTitle eyebrow="LEARNING PATH" title="基礎から、抽出を設計する力まで。" copy="初級・中級・上級の3段階。順番に進むと、知識とハンドドリップの技術が自然につながります。" />
-    <div className="level-overview">{learningLevels.map((level) => { const list = lessons.filter((l) => l.level === level.id); const done = list.filter((l) => data.completedLessons.includes(l.id)).length; return <div key={level.id} style={{ '--level': level.color } as React.CSSProperties}><span>{level.number}</span><strong>{level.title}</strong><small>{done}/{list.length}</small></div> })}</div>
-    <div className="chapter-list level-list">{learningLevels.map((level) => { const Icon = level.icon; const list = lessons.filter((l) => l.level === level.id); const done = list.filter((l) => data.completedLessons.includes(l.id)).length; return <section className="chapter-card" key={level.id} style={{ '--chapter': level.color } as React.CSSProperties}><div className="chapter-head"><div className="chapter-icon"><Icon /></div><div><span>LEVEL {level.number}</span><h2>{level.title}</h2><p>{level.description}</p></div><div className="chapter-score">{done}<small>/{list.length}</small></div></div><div className="lesson-list">{list.map((lesson, index) => { const complete = data.completedLessons.includes(lesson.id); const chapter = chapters.find((c) => c.id === lesson.chapter)!; return <button key={lesson.id} onClick={() => navigate({ page: 'lesson', id: lesson.id })}><span className={`status ${complete ? 'done' : ''}`}>{complete ? <Check size={15} /> : index + 1}</span><div><span className="lesson-category">{chapter.title}</span><h3>{lesson.title}</h3><p>{lesson.subtitle} · {lesson.minutes}分</p></div><ChevronRight size={19} /></button> })}</div></section> })}</div>
+    <div className="level-overview">{learningLevels.map((level) => { const list = orderedLessons.filter((l) => l.level === level.id); const done = list.filter((l) => data.completedLessons.includes(l.id)).length; return <div key={level.id} style={{ '--level': level.color } as React.CSSProperties}><span>{level.number}</span><strong>{level.title}</strong><small>{done}/{list.length}</small></div> })}</div>
+    <div className="chapter-list level-list">{learningLevels.map((level) => { const Icon = level.icon; const list = orderedLessons.filter((l) => l.level === level.id); const done = list.filter((l) => data.completedLessons.includes(l.id)).length; return <section className="chapter-card" key={level.id} style={{ '--chapter': level.color } as React.CSSProperties}><div className="chapter-head"><div className="chapter-icon"><Icon /></div><div><span>LEVEL {level.number}</span><h2>{level.title}</h2><p>{level.description}</p></div><div className="chapter-score">{done}<small>/{list.length}</small></div></div><div className="lesson-list">{list.map((lesson, index) => { const complete = data.completedLessons.includes(lesson.id); const chapter = chapters.find((c) => c.id === lesson.chapter)!; return <button key={lesson.id} onClick={() => navigate({ page: 'lesson', id: lesson.id })}><span className={`status ${complete ? 'done' : ''}`}>{complete ? <Check size={15} /> : index + 1}</span><div><span className="lesson-category">{chapter.title}</span><h3>{lesson.title}</h3><p>{lesson.subtitle} · {lesson.minutes}分</p></div><ChevronRight size={19} /></button> })}</div></section> })}</div>
     <button className="course-practice course-practice-bottom" onClick={() => navigate({ page: 'practice' })}><Beaker /><div><span>学んだあとは</span><strong>実践トレーニングで、味と言葉につなげる</strong></div><ChevronRight /></button>
   </div>
 }
@@ -100,7 +105,7 @@ function PageTitle({ eyebrow, title, copy }: { eyebrow: string; title: string; c
 
 function LessonPage({ lesson, data, navigate, update }: { lesson: Lesson; data: AppData; navigate: (v: View) => void; update: (fn: (d: AppData) => AppData) => void }) {
   const chapter = chapters.find((c) => c.id === lesson.chapter)!
-  const index = lessons.findIndex((l) => l.id === lesson.id)
+  const index = orderedLessons.findIndex((l) => l.id === lesson.id)
   const markComplete = () => update((d) => ({ ...d, completedLessons: [...new Set([...d.completedLessons, lesson.id])], activityDates: [...new Set([...d.activityDates, todayKey()])] }))
   return <div className="lesson-page">
     <button className="back" onClick={() => navigate({ page: 'course' })}><ChevronLeft size={18} /> コース一覧</button>
@@ -109,7 +114,7 @@ function LessonPage({ lesson, data, navigate, update }: { lesson: Lesson; data: 
       <section className="takeaway"><Coffee /><div><span>今日のひとこと</span><h2>{lesson.takeaway}</h2></div></section>
       <section className="terms"><span className="eyebrow">KEY WORDS</span><h2>覚えておきたい言葉</h2><div>{lesson.terms.map((term) => <article key={term.term}><strong>{term.term}</strong><p>{term.meaning}</p></article>)}</div></section>
       <button className="primary quiz-start" onClick={() => { markComplete(); navigate({ page: 'quiz', id: lesson.id }) }}>3問クイズに挑戦 <ChevronRight /></button>
-      <div className="lesson-pagination"><button disabled={index === 0} onClick={() => navigate({ page: 'lesson', id: lessons[index - 1].id })}><ChevronLeft /> 前へ</button><button disabled={index === lessons.length - 1} onClick={() => navigate({ page: 'lesson', id: lessons[index + 1].id })}>次へ <ChevronRight /></button></div>
+      <div className="lesson-pagination"><button disabled={index === 0} onClick={() => navigate({ page: 'lesson', id: orderedLessons[index - 1].id })}><ChevronLeft /> 前へ</button><button disabled={index === orderedLessons.length - 1} onClick={() => navigate({ page: 'lesson', id: orderedLessons[index + 1].id })}>次へ <ChevronRight /></button></div>
     </div>
   </div>
 }
@@ -216,7 +221,7 @@ const badges = [
   { id: 'perfect', icon: Award, name: 'クイズマスター', text: 'いずれかのクイズで満点', test: (d: AppData) => Object.values(d.quizScores).some((x) => x === 3) },
   { id: 'brewer', icon: Coffee, name: 'ホームブリューワー', text: '最初の一杯を記録', test: (d: AppData) => d.brewLogs.length >= 1 },
   { id: 'journal', icon: ListFilter, name: '味の探究者', text: '5杯を記録', test: (d: AppData) => d.brewLogs.length >= 5 },
-  { id: 'graduate', icon: Flame, name: 'コーヒー通への入口', text: '全12レッスンを完了', test: (d: AppData) => d.completedLessons.length === lessons.length }
+  { id: 'graduate', icon: Flame, name: 'コーヒー通への入口', text: '全18レッスンを完了', test: (d: AppData) => lessons.every((lesson) => d.completedLessons.includes(lesson.id)) }
 ]
 function BadgesPage({ data }: { data: AppData }) { const earned = badges.filter((b) => b.test(data)).length; return <div className="page narrow"><PageTitle eyebrow="MILESTONES" title="小さな発見のしるし。" copy={`${earned} / ${badges.length} バッジ獲得`} /><div className="badge-grid">{badges.map((badge) => { const Icon = badge.icon; const unlocked = badge.test(data); return <article className={unlocked ? 'unlocked' : ''} key={badge.id}><div><Icon /></div><span>{unlocked ? 'GET!' : 'LOCKED'}</span><h2>{badge.name}</h2><p>{badge.text}</p></article> })}</div></div> }
 

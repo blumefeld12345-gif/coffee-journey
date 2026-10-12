@@ -46,4 +46,31 @@ describe('56-lesson curriculum', () => {
     expect(chapters).toHaveLength(4)
     for (const chapter of chapters) expect(lessons.some((lesson) => lesson.chapter === chapter.id)).toBe(true)
   })
+
+  it('keeps every question unambiguous and fully explained', () => {
+    const ids = new Set<string>()
+    for (const lesson of lessons) {
+      for (const question of lesson.quiz) {
+        expect(ids.has(question.id)).toBe(false)
+        ids.add(question.id)
+        expect(question.question.trim().length).toBeGreaterThan(10)
+        expect(new Set(question.choices).size).toBe(3)
+        expect(question.choices.every((choice) => choice.trim().length > 0)).toBe(true)
+        expect(question.choiceExplanations.every((reason) => reason.trim().length > 8)).toBe(true)
+      }
+    }
+  })
+
+  it('includes comparison and practical judgment across the curriculum', () => {
+    for (const lesson of lessons) {
+      expect(lesson.quiz.some((question) => ['比較', '読解'].includes(question.skill))).toBe(true)
+      expect(lesson.quiz.some((question) => ['実践', '診断'].includes(question.skill))).toBe(true)
+    }
+  })
+
+  it('does not concentrate correct answers in one position', () => {
+    const totals = [0, 1, 2].map((position) => lessons.flatMap((lesson) => lesson.quiz).filter((question) => question.answer === position).length)
+    expect(Math.max(...totals) - Math.min(...totals)).toBeLessThan(80)
+    for (const lesson of lessons) expect(new Set(lesson.quiz.map((question) => question.answer)).size).toBeGreaterThanOrEqual(2)
+  })
 })

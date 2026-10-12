@@ -49,24 +49,33 @@ const countries: Country[] = [
 
 const groupFor = (i:number) => i < 5 ? '南米' : i < 14 ? '中米・カリブ・ハワイ' : i < 20 ? 'アフリカ・中東' : 'アジア・オセアニア'
 const q = (id:string,skill:QuizQuestion['skill'],role:QuizQuestion['sectionRole'],question:string,choices:string[],answer:number,reasons:string[]):QuizQuestion => ({id,skill,sectionRole:role,question,choices,answer,explanation:reasons[answer],choiceExplanations:reasons})
+const rotateAnswer = (question: QuizQuestion, shift: number): QuizQuestion => {
+ const offset = shift % question.choices.length
+ if (!offset) return question
+ const choices = [...question.choices.slice(offset), ...question.choices.slice(0, offset)]
+ const choiceExplanations = [...question.choiceExplanations.slice(offset), ...question.choiceExplanations.slice(0, offset)]
+ const answer = (question.answer - offset + question.choices.length) % question.choices.length
+ return { ...question, choices, choiceExplanations, answer, explanation: choiceExplanations[answer] }
+}
 
 function countryLesson(c:Country,index:number):Lesson {
  const r=c.regions,v=c.varieties,p=c.production,f=c.profiles
- const quiz:QuizQuestion[]=[
-  q(`${c.code}-1`,'地域','前提',`${c.name}で「${r[0][1]}」を探すなら、最初に注目する地域は？`,[r[0][0],r[1][0],r[2][0]],0,[`${r[0][0]}は${r[0][1]}。`,`${r[1][0]}は${r[1][1]}。`,`${r[2][0]}は${r[2][1]}。`]),
-  q(`${c.code}-2`,'地域','前提',`${r[1][0]}の代表的な読み方として最も近いものは？`,[r[2][1],r[0][1],r[1][1]],2,[`これは${r[2][0]}の傾向です。`,`これは${r[0][0]}の傾向です。`,`${r[1][0]}では${r[1][1]}が手掛かりです。`]),
-  q(`${c.code}-3`,'品種','仕組み',`${c.name}で見られる${v[0][0]}について正しい説明は？`,[v[1][1],v[0][1],v[2][1]],1,[`これは${v[1][0]}の説明です。`,`${v[0][0]}は${v[0][1]}。`,`これは${v[2][0]}の説明です。`]),
-  q(`${c.code}-4`,'生産','仕組み',`${p[0][0]}をこの国の生産事情として読むと？`,[p[2][1],p[1][1],p[0][1]],2,[`これは${p[2][0]}の説明です。`,`これは${p[1][0]}の説明です。`,`${p[0][0]}は${p[0][1]}。`]),
-  q(`${c.code}-5`,'生産','仕組み',`${c.name}の「${p[1][0]}」が意味するものは？`,[p[1][1],p[2][1],p[0][1]],0,[`${p[1][0]}は${p[1][1]}。`,`これは${p[2][0]}の説明です。`,`これは${p[0][0]}の説明です。`]),
-  q(`${c.code}-6`,'比較','使い方',`${f[2][0]}を選ぶときの風味の手掛かりは？`,[f[0][1],f[2][1],f[1][1]],1,[`これは${f[0][0]}です。`,`${f[2][0]}は${f[2][1]}。`,`これは${f[1][0]}です。`]),
-  q(`${c.code}-7`,'読解','使い方',`${c.name}産を地域まで読み分けるとき、最も役立つ組み合わせは？`,[`${r[0][0]}／${v[0][0]}／${p[0][0]}`,`${v[0][0]}／${v[1][0]}／${v[2][0]}`,`${p[0][0]}／${p[1][0]}／${p[2][0]}`],0,[`地域・品種・生産工程を別々に読めます。`,`品種名だけで地域は特定できません。`,`工程だけでは地域性を読み分けられません。`]),
-  q(`${c.code}-8`,'実践','使い方',`同じ焙煎度の${c.name}産が二つあります。「${r[0][1]}」を求める場合の選び方は？`,[`${r[0][0]}を第一候補にし、${p[0][0]}など工程も確認する。`,`${r[1][0]}を第一候補にし、地域情報だけで味を確定する。`,`${r[2][0]}を第一候補にし、${v[2][0]}なら地域差は消えると考える。`],0,[`${r[0][0]}の地域傾向と工程の両方を使った、根拠のある候補選びです。`,`${r[1][0]}は${r[1][1]}が手掛かりで、さらに地域だけで断定もできません。`,`${r[2][0]}は${r[2][1]}が手掛かりで、品種が地域差を消すわけではありません。`])
+ const rawQuiz:QuizQuestion[]=[
+  q(`${c.code}-1`,'地域','前提',`${c.name}で「${r[0][1]}」の傾向が紹介されている地域はどれですか？`,[r[1][0],r[0][0],r[2][0]],1,[`${r[1][0]}は「${r[1][1]}」が紹介されている地域です。`,`${r[0][0]}は「${r[0][1]}」が紹介されている地域です。`,`${r[2][0]}は「${r[2][1]}」が紹介されている地域です。`]),
+  q(`${c.code}-2`,'比較','前提',`${r[1][0]}と${r[2][0]}の地域傾向の組み合わせとして正しいものは？`,[`${r[1][0]}：${r[1][1]}／${r[2][0]}：${r[2][1]}`,`${r[1][0]}：${r[2][1]}／${r[2][0]}：${r[1][1]}`,`${r[1][0]}：${r[0][1]}／${r[2][0]}：${r[1][1]}`],0,[`二つの地域と、本文で扱った風味傾向が正しく対応しています。`,`二つの地域の説明が入れ替わっています。`,`一つ目は${r[0][0]}、二つ目は${r[1][0]}の説明です。`]),
+  q(`${c.code}-3`,'品種','仕組み',`${v[0][0]}、${v[1][0]}、${v[2][0]}のうち、「${v[1][1]}」に当てはまるものは？`,[v[2][0],v[1][0],v[0][0]],1,[`${v[2][0]}は「${v[2][1]}」と説明されています。`,`${v[1][0]}は「${v[1][1]}」という特徴を持つ品種・系統です。`,`${v[0][0]}は「${v[0][1]}」と説明されています。`]),
+  q(`${c.code}-4`,'生産','仕組み',`${c.name}の生産に関する「${p[0][0]}」の説明として正しいものは？`,[p[2][1],p[0][1],p[1][1]],1,[`これは${p[2][0]}の説明です。`,`${p[0][0]}は「${p[0][1]}」を指します。`,`これは${p[1][0]}の説明です。`]),
+  q(`${c.code}-5`,'生産','仕組み',`${p[1][1]}という生産事情に対応する項目はどれですか？`,[p[1][0],p[2][0],p[0][0]],0,[`${p[1][0]}が該当します。`,`これは「${p[2][1]}」を示す${p[2][0]}です。`,`これは「${p[0][1]}」を示す${p[0][0]}です。`]),
+  q(`${c.code}-6`,'比較','使い方',`${f[2][1]}に近い傾向を探す場合、本文上の第一候補はどれですか？`,[f[0][0],f[1][0],f[2][0]],2,[`${f[0][0]}は「${f[0][1]}」の傾向です。`,`${f[1][0]}は「${f[1][1]}」の傾向です。`,`${f[2][0]}は「${f[2][1]}」として整理されています。実際には精製や焙煎も確認します。`]),
+  q(`${c.code}-7`,'読解','使い方',`${c.name}産の袋に「${r[0][0]}／${v[0][0]}／${p[0][0]}」とあります。三つの情報の分類は？`,[`地域／品種・系統／生産・精製情報`,`品種・系統／生産・精製情報／地域`,`生産・精製情報／地域／品種・系統`],0,[`${r[0][0]}は地域、${v[0][0]}は品種・系統、${p[0][0]}は生産または精製に関する情報です。`,`三つの情報区分の順序が一致していません。`,`三つの情報区分の順序が一致していません。`]),
+  q(`${c.code}-8`,'実践','使い方',`同程度の焙煎で「${r[0][1]}」と「${r[1][1]}」を比較したい場合、選ぶ組み合わせは？`,[`${r[0][0]}と${r[2][0]}`,`${r[0][0]}と${r[1][0]}`,`${r[1][0]}と${r[2][0]}`],1,[`二つ目の${r[2][0]}は「${r[2][1]}」の傾向です。`,`${r[0][0]}と${r[1][0]}が、比較したい二つの地域傾向に対応します。`,`一つ目は合いますが、二つ目の${r[2][0]}は「${r[2][1]}」の傾向です。`])
  ]
+ const quiz = rawQuiz.map((question, questionIndex) => rotateAnswer(question, index + questionIndex))
  const cards=(values:Card[])=>values.map(([label,detail],i)=>({label,detail,tone:['green','gold','berry'][i]}))
  return {id:`country-${c.code.toLowerCase()}`,chapter:'origin',path:'origins',group:groupFor(index),countryCode:c.code,number:index+7,title:c.name,subtitle:'地域・品種・生産から味を読む',minutes:9,goal:`${c.name}の主要地域を区別し、商品表示から味の仮説を立てる。`,prerequisite:'産地を学ぶ共通知識6本。',takeaway:`${c.name}という国名の内側にある地域差を読む。`,sections:[
-  {role:'前提',eyebrow:'MAP & REGIONS',title:`${c.name}の地理と主要地域`,body:`${c.area} 同程度の焙煎・抽出で見られやすい一般的傾向として比較します。`,visual:'countries',items:cards(r)},
-  {role:'仕組み',eyebrow:'VARIETY & PRODUCTION',title:'品種と生産事情',body:`代表的な品種と工程を分けて読みます。地域やロットにより例外があり、表示がない情報は断定しません。`,visual:'process',items:cards([...v,...p])},
-  {role:'使い方',eyebrow:'CUP & SHOP',title:'味の傾向を店頭で使う',body:`地域別の傾向を購入前の仮説にし、飲んだ結果で更新します。実践：${c.shop}`,visual:'flavor',items:cards(f)}
+  {role:'前提',eyebrow:'MAP & REGIONS',title:`${c.name}の地理と主要地域`,body:`${c.area} 国名だけでは生育環境を特定できないため、地域名まで確認します。以下の風味語は、同程度の焙煎・抽出で見られやすい一般的傾向であり、個々の豆の味を保証するものではありません。`,visual:'countries',items:cards(r)},
+  {role:'仕組み',eyebrow:'VARIETY & PRODUCTION',title:'品種と生産事情を分けて読む',body:`品種は植物、精製は果実から生豆にする工程、生産事情は収穫・選別・流通の背景です。それぞれ味の可能性に関わりますが、一項目だけで品質や風味は決まりません。表示がない情報は推測で補わず、地域やロットによる例外を残して読みます。`,visual:'process',items:cards([...v,...p])},
+  {role:'使い方',eyebrow:'CUP & SHOP',title:'味の仮説を店頭と一杯で確かめる',body:`欲しい味に近い地域を候補にし、品種、精製、焙煎、店の風味説明を重ねて選びます。飲んだ後は一致した点と違った点を記録し、産地の印象を更新します。実践：${c.shop}`,visual:'flavor',items:cards(f)}
  ],terms:[{term:r[0][0],meaning:r[0][1]},{term:v[0][0],meaning:v[0][1]},{term:p[0][0],meaning:p[0][1]}],quiz,sources:[c.source??commonSources.ico,commonSources.wcr]}
 }
 

@@ -120,7 +120,7 @@ function LessonBlock({ section, countryCode, countryName }: { section: LessonSec
   const imageUrl = section.art ? artUrl(section.art) : undefined
   return <section id={`section-${section.role}`} className={`lesson-block visual-${section.visual}`}><div className="lesson-text"><span className="section-role">{section.role}</span><span className="eyebrow">{section.eyebrow}</span><h2>{section.title}</h2><p>{section.body}</p></div><div className={`visual-board ${atlas ? 'atlas-board' : ''} ${section.art ? 'has-art' : ''}`}>
     {countryCode && section.role === '前提' && <CountryMap code={countryCode} name={countryName ?? countryCode} />}
-    {section.art && (imageUrl ? <figure className={`lesson-art art-${section.art}`}><img src={imageUrl} alt={`${section.title}の図解`} /></figure> : <ConceptDiagram kind={section.art} items={section.items} />)}
+    {section.art && (imageUrl ? <figure className={`lesson-art art-${section.art} ${imageUrl.endsWith('.svg') ? 'diagram-asset' : ''}`}><img src={imageUrl} alt={`${section.title}の図解`} /></figure> : <ConceptDiagram kind={section.art} items={section.items} />)}
     {atlas && <div className="atlas-map" aria-hidden="true"><span className="land land-one" /><span className="land land-two" /><span className="land land-three" /><i className="route route-one" /><i className="route route-two" /><b>ORIGIN MAP</b></div>}
     {section.items.map((item, i) => <article key={item.label} className={item.tone ?? ''}><div className="visual-symbol" aria-hidden="true">{visualSymbol(`${item.label} ${item.detail}`, i)}</div><span>{String(i + 1).padStart(2, '0')}</span><strong>{item.label}</strong><p>{item.detail}</p></article>)}</div></section>
 }
@@ -135,7 +135,13 @@ function CountryMap({ code, name }: { code: string; name: string }) {
 }
 
 const artFiles: Partial<Record<NonNullable<LessonSection['art']>, string>> = {
-  plant: 'coffee-plant-journey.png', species: 'coffee-species.png', taste: 'flavor-vocabulary.png', varieties: 'arabica-varieties.png', 'origin-map': 'origin-map.png', processing: 'processing-methods.png', flavor: 'flavor-vocabulary.png'
+  plant: '01-cherry-anatomy.svg', species: '02-classification.svg', taste: '16-sensory-sequence.svg', climate: '15-growing-environment.svg',
+  processing: '03-processing-comparison.svg', roast: '10-roast-progression.svg', 'basic-brew': '11-baseline-recipe.svg', varieties: 'arabica-varieties.png',
+  terroir: '15-growing-environment.svg', 'origin-map': '21-coffee-belt-map.svg', fermentation: '03-processing-comparison.svg', label: '04-label-reading.svg',
+  flavor: '16-sensory-sequence.svg', extraction: '05-strength-extraction.svg', grind: '06-grind-and-flow.svg', ratio: '17-ratio-comparison.svg',
+  temperature: '12-brew-variables.svg', pouring: '07-bloom-channeling.svg', 'dial-in': '09-recipe-cycle.svg', filter: '08-filter-comparison.svg',
+  device: '13-dripper-structure.svg', diagnosis: '14-diagnosis-path.svg', storage: '18-storage.svg', comparison: '20-comparison-design.svg',
+  'supply-chain': '19-processing-structures.svg'
 }
 
 function artUrl(art: NonNullable<LessonSection['art']>) {

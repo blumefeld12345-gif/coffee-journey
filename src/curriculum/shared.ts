@@ -34,5 +34,6 @@ export function standardLesson(seed: StandardSeed): Lesson {
 export const commonSources = {
   sca: { label: 'Specialty Coffee Association', url: 'https://sca.coffee/' },
   wcr: { label: 'World Coffee Research 品種カタログ', url: 'https://varieties.worldcoffeeresearch.org/arabica' },
-  ico: { label: 'International Coffee Organization', url: 'https://ico.org/' }
+  ico: { label: 'International Coffee Organization', url: 'https://ico.org/' },
+  ucDavis: { label: 'UC Davis Coffee Center 研究資料', url: 'https://coffeecenter.ucdavis.edu/faculty-research/publications' }
 }

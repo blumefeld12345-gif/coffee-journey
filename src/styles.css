@@ -89,6 +89,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .visual-board.has-art { padding: 10px; grid-template-columns: repeat(2, 1fr); background: #e5dccb; }
 .lesson-art { grid-column: 1 / -1; height: 255px; margin: 0; border-radius: 16px; overflow: hidden; background: #243e33; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); z-index: 1; }
 .lesson-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lesson-art.diagram-asset { height: auto; min-height: 255px; background: #fbf7ef; }
+.lesson-art.diagram-asset img { height: auto; min-height: 255px; object-fit: contain; }
 .lesson-art.art-varieties { background: #f1e7d4; }
 .lesson-art.art-varieties img { object-fit: contain; }
 .visual-board.has-art article { min-height: 94px; }

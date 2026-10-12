@@ -20,7 +20,7 @@ export type LessonSection = {
   title: string
   body: string
   visual: 'altitude' | 'countries' | 'flavor' | 'process' | 'compare' | 'spectrum' | 'heat' | 'recipe' | 'variables' | 'adjust'
-  art?: 'plant' | 'species' | 'taste' | 'climate' | 'processing' | 'roast' | 'basic-brew' | 'varieties' | 'terroir' | 'origin-map' | 'fermentation' | 'label' | 'flavor' | 'extraction' | 'grind' | 'ratio' | 'temperature' | 'pouring' | 'dial-in'
+  art?: 'plant' | 'species' | 'taste' | 'climate' | 'processing' | 'roast' | 'basic-brew' | 'varieties' | 'terroir' | 'origin-map' | 'fermentation' | 'label' | 'flavor' | 'extraction' | 'grind' | 'ratio' | 'temperature' | 'pouring' | 'dial-in' | 'filter' | 'device' | 'diagnosis' | 'storage' | 'comparison' | 'supply-chain'
   items: { label: string; detail: string; tone?: string }[]
 }
 

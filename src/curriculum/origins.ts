@@ -68,7 +68,7 @@ const commonSeeds: StandardSeed[] = [
   const [id,title,subtitle,takeaway] = row
   return {id,chapter:'origin',path:'origins',group:'共通知識',number:index+1,title,subtitle,goal:`${title}の考え方を豆選びに使える。`,prerequisite:index ? '前の共通知識レッスン。' : 'コーヒーの基礎を修了していること。',takeaway,
     overview:commonText[id][0],mechanism:commonText[id][1],use:commonText[id][2],
-    cards:[[['産地','土地の情報'],['品種','植物の情報'],['精製','生産工程の情報']],[['標高','環境の一要素'],['焙煎','熱の加え方'],['抽出','飲み手の条件']],[['仮説','表示から予想する'],['比較','条件を近づける'],['更新','飲んだ結果で直す']]],terms:[['テロワール','土地と生育環境の総体'],['ロット','区分された豆のまとまり'],['仮説','確認前の根拠ある予想']],quiz:commonQuiz[id],sources:[commonSources.wcr,commonSources.sca]} as StandardSeed
+    cards:[[['産地','土地の情報'],['品種','植物の情報'],['精製','生産工程の情報']],[['標高','環境の一要素'],['焙煎','熱の加え方'],['抽出','飲み手の条件']],[['仮説','表示から予想する'],['比較','条件を近づける'],['更新','飲んだ結果で直す']]],terms:[['テロワール','土地と生育環境の総体'],['ロット','区分された豆のまとまり'],['仮説','確認前の根拠ある予想']],art:id==='origin-reading'?'origin-map':id==='origin-address'?'label':id==='origin-terroir'?'terroir':id==='origin-variety'?'varieties':id==='origin-process'?'processing':'comparison',quiz:commonQuiz[id],sources:[commonSources.wcr,commonSources.sca]} as StandardSeed
 })
 
 type Country = {
@@ -195,7 +195,7 @@ const comparisonSeeds: StandardSeed[] = [
  ['compare-label','袋から味を予想する','五つの情報を接続','地域、品種、精製、焙煎、説明文から仮説を作る。'],
  ['compare-taste','味から候補を考える','答えでなく仮説を作る','味から産地・精製・焙煎の候補を複数挙げる。'],
  ['compare-dialogue','店員さんと話す','好みを質問へ変える','欲しい味、避けたい味、比較したい情報を伝える。']
-].map((row,index)=>({id:row[0],chapter:'origin',path:'origins',group:'比較実践',number:index+31,title:row[1],subtitle:row[2],goal:`${row[1]}ための判断ができる。`,prerequisite:'24か国の国別レッスン。',takeaway:row[3],overview:comparisonText[row[0]][0],mechanism:comparisonText[row[0]][1],use:comparisonText[row[0]][2],cards:[[['地域','国の内側まで読む'],['品種','植物の違いを確認'],['精製','工程差を確認']],[['焙煎','近い度合いで比べる'],['抽出','同じ条件で淹れる'],['香味','同じ言葉の軸で記録']],[['予想','根拠を二つ挙げる'],['質問','不明な情報を尋ねる'],['修正','飲後に仮説を更新']]],terms:[['比較条件','違いを見るためにそろえる条件'],['仮説','根拠を伴う予想'],['例外','一般傾向に当てはまらない事例']],quiz:comparisonQuiz[row[0]],sources:[commonSources.sca,commonSources.ico]} as StandardSeed))
+].map((row,index)=>({id:row[0],chapter:'origin',path:'origins',group:'比較実践',number:index+31,title:row[1],subtitle:row[2],goal:`${row[1]}ための判断ができる。`,prerequisite:'24か国の国別レッスン。',takeaway:row[3],overview:comparisonText[row[0]][0],mechanism:comparisonText[row[0]][1],use:comparisonText[row[0]][2],cards:[[['地域','国の内側まで読む'],['品種','植物の違いを確認'],['精製','工程差を確認']],[['焙煎','近い度合いで比べる'],['抽出','同じ条件で淹れる'],['香味','同じ言葉の軸で記録']],[['予想','根拠を二つ挙げる'],['質問','不明な情報を尋ねる'],['修正','飲後に仮説を更新']]],terms:[['比較条件','違いを見るためにそろえる条件'],['仮説','根拠を伴う予想'],['例外','一般傾向に当てはまらない事例']],art:row[0]==='compare-label'?'label':row[0]==='compare-dialogue'?'flavor':'comparison',quiz:comparisonQuiz[row[0]],sources:[commonSources.sca,commonSources.ico]} as StandardSeed))
 
 export const originLessons: Lesson[] = [
  ...commonSeeds.map((seed, index) => standardLesson({ ...seed, quiz: seed.quiz?.map((question, questionIndex) => rotateAnswer(question, index + questionIndex)) })),

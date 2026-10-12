@@ -83,4 +83,21 @@ describe('56-lesson curriculum', () => {
     expect(Math.max(...totals) - Math.min(...totals)).toBeLessThan(80)
     for (const lesson of lessons) expect(new Set(lesson.quiz.map((question) => question.answer)).size).toBeGreaterThanOrEqual(2)
   })
+
+  it('does not expose English-only labels for common beginner terms', () => {
+    const visibleText = lessons.flatMap((lesson) => [
+      ...lesson.sections.flatMap((section) => [section.title, section.body, ...section.items.flatMap((item) => [item.label, item.detail])]),
+      ...lesson.quiz.flatMap((question) => [question.question, ...question.choices, ...question.choiceExplanations])
+    ]).join('\n')
+    for (const english of ['Arabica', 'Caturra', 'Washed', 'Natural', 'Light Roast', 'Robusta', 'Anaerobic', 'Monsooned']) {
+      expect(visibleText, english).not.toContain(english)
+    }
+  })
+
+  it('keeps joke-like distractors and the retired generic template out of quizzes', () => {
+    const quizText = lessons.flatMap((lesson) => lesson.quiz.flatMap((question) => [question.question, ...question.choices])).join('\n')
+    for (const phrase of ['袋の色', 'カップの色', '国旗', '座席番号', '購入した価格', 'に当てはまる項目はどれですか？']) {
+      expect(quizText, phrase).not.toContain(phrase)
+    }
+  })
 })

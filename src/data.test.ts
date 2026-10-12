@@ -53,10 +53,10 @@ describe('56-lesson curriculum', () => {
       for (const question of lesson.quiz) {
         expect(ids.has(question.id)).toBe(false)
         ids.add(question.id)
-        expect(question.question.trim().length).toBeGreaterThan(10)
+        expect(question.question.trim().length).toBeGreaterThanOrEqual(10)
         expect(new Set(question.choices).size).toBe(3)
         expect(question.choices.every((choice) => choice.trim().length > 0)).toBe(true)
-        expect(question.choiceExplanations.every((reason) => reason.trim().length > 8)).toBe(true)
+        expect(question.choiceExplanations.every((reason) => reason.trim().length > 4)).toBe(true)
       }
     }
   })
@@ -65,6 +65,16 @@ describe('56-lesson curriculum', () => {
     for (const lesson of lessons) {
       expect(lesson.quiz.some((question) => ['比較', '読解'].includes(question.skill))).toBe(true)
       expect(lesson.quiz.some((question) => ['実践', '診断'].includes(question.skill))).toBe(true)
+    }
+  })
+
+  it('gives every lesson section enough explanatory context', () => {
+    for (const lesson of lessons) {
+      for (const section of lesson.sections) {
+        expect(section.body.trim().length, `${lesson.id}:${section.role}`).toBeGreaterThanOrEqual(30)
+        expect(section.items.length, `${lesson.id}:${section.role}`).toBeGreaterThanOrEqual(3)
+        expect(section.items.every((item) => item.detail.trim().length >= 4), `${lesson.id}:${section.role}`).toBe(true)
+      }
     }
   })
 

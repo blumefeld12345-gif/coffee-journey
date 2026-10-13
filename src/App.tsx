@@ -126,12 +126,24 @@ function LessonBlock({ section, countryCode, countryName }: { section: LessonSec
 }
 
 const countryPins: Record<string, [number, number]> = {
-  BR:[34,70],CO:[25,61],PE:[27,69],BO:[31,72],EC:[23,64],GT:[17,53],SV:[18,55],HN:[19,53],CR:[21,57],PA:[23,58],NI:[19,55],MX:[14,48],
-  'US-HI':[7,44],JM:[23,48],ET:[58,58],KE:[60,64],RW:[57,66],BI:[58,68],TZ:[61,69],YE:[65,55],ID:[83,71],VN:[81,58],IN:[72,57],PG:[91,72]
+  BR:[35,63],CO:[29,51],PE:[28,59],BO:[31,62],EC:[27,53],GT:[25,44],SV:[25,46],HN:[26,44],CR:[27,48],PA:[28,48],NI:[26,46],MX:[22,39],
+  'US-HI':[6,40],JM:[28,42],ET:[61,48],KE:[62,53],RW:[59,55],BI:[59,56],TZ:[61,58],YE:[63,44],ID:[83,61],VN:[80,47],IN:[72,46],PG:[90,61]
+}
+const countryRegions: Record<string, string> = {
+  BR:'南アメリカ',CO:'南アメリカ',PE:'南アメリカ',BO:'南アメリカ',EC:'南アメリカ',GT:'中央アメリカ',SV:'中央アメリカ',HN:'中央アメリカ',CR:'中央アメリカ',PA:'中央アメリカ',NI:'中央アメリカ',MX:'北アメリカ南部',
+  'US-HI':'北太平洋',JM:'カリブ海',ET:'アフリカ東部',KE:'アフリカ東部',RW:'アフリカ東部',BI:'アフリカ東部',TZ:'アフリカ東部',YE:'アラビア半島南部',ID:'東南アジア',VN:'東南アジア',IN:'南アジア',PG:'南太平洋'
 }
 function CountryMap({ code, name }: { code: string; name: string }) {
   const [left, top] = countryPins[code] ?? [50, 50]
-  return <figure className="country-map" aria-label={`${name}の世界地図上の位置`}><div className="world-shape" aria-hidden="true"><i className="continent americas" /><i className="continent europe-africa" /><i className="continent asia" /><i className="continent oceania" /></div><span className="country-pin" style={{ left: `${left}%`, top: `${top}%` }}><b>{name}</b></span><figcaption>世界地図で位置を確認してから、国内の主要地域を見ていきます。</figcaption></figure>
+  return <figure className="country-map" aria-label={`${name}の世界地図上の位置`}>
+    <div className="map-heading"><strong>{name}</strong><span>{countryRegions[code] ?? '世界の生産地域'}</span></div>
+    <div className="coffee-belt" aria-hidden="true" />
+    <img className="world-map-base" src={`${import.meta.env.BASE_URL}lesson-art/world-base-public-domain.svg`} alt="国境を省略した世界地図" />
+    <span className="equator-line" aria-hidden="true"><i>赤道</i></span>
+    <span className="country-pin" style={{ left: `${left}%`, top: `${top}%` }}><b>{name}</b></span>
+    <div className="map-legend"><span><i className="legend-belt" />コーヒーベルト</span><span><i className="legend-pin" />このレッスンの国</span></div>
+    <figcaption>世界の中での位置を確認。実際の栽培地は、国全体ではなく条件の合う地域に分布します。</figcaption>
+  </figure>
 }
 
 const artFiles: Partial<Record<NonNullable<LessonSection['art']>, string>> = {
